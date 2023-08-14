@@ -7,10 +7,6 @@
 - [Twilio](https://www.twilio.com/docs/sms)
 - [Digital Ocean Spaces](https://docs.digitalocean.com/products/spaces/)
 
-## How to deploy
-
-`doctl serverless deploy app  --remote-build`
-
 ## How to run locally
 
 First setup
@@ -34,6 +30,14 @@ Inside of the `/app/packages/twilio/twilio` directory
 
 ```bash
 python __main__.py "Your message here"
+```
+
+### How to deploy
+
+Note: you'll need the docker cli installed and configured. You can install it via `brew install doctl` on Mac.
+
+```bash
+doctl serverless deploy app  --remote-build
 ```
 
 ### Is there testing?
