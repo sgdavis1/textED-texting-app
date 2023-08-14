@@ -1,0 +1,13 @@
+alerts:
+- rule: DEPLOYMENT_FAILED
+- rule: DOMAIN_FAILED
+functions:
+- github:
+    branch: master
+    deploy_on_push: true
+    repo: franspiceca/texted-resources
+  name: edci
+  routes:
+  - path: /
+  source_dir: /
+name: edci
