@@ -20,7 +20,7 @@ python -m venv .texted_texting_app
 # NOTE: you need to keep this up to date with the requirements.txt in the function directory or just use that
 source .texted_texting_app/bin/activate
 pip install -r ./app/packages/twilio/twilio/requirements.txt
-copy .env.example .app/packages/twilio/twilio/.env
+cp .env.example .app/packages/twilio/twilio/.env
 cd ./app/packages/twilio/twilio
 ```
 
