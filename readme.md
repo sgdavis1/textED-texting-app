@@ -1,5 +1,12 @@
 # textED-Resources
 
+## Stack
+
+- Python 3.9
+- [Digital Ocean Functions](https://docs.digitalocean.com/products/functions/)
+- [Twilio](https://www.twilio.com/docs/sms)
+- [Digital Ocean Spaces](https://docs.digitalocean.com/products/spaces/)
+
 ## How to deploy
 
 `doctl serverless deploy app  --remote-build`
@@ -7,12 +14,14 @@
 ## How to run locally
 
 ```bash
+git clone git@github.com:jrmeier/textED-texting-app.git
+cd ./textED-texting-app
 # create a virtual environment
-python -m venv venv
+python -m venv .texted_texting_app
 # install requirements
 # NOTE: you need to keep this up to date with the requirements.txt in the function directory or just use that
 pip install -r ./app/packages/twilio/twilio/requirements.txt
-source venv/bin/activate
+source .texted_texting_app/bin/activate
 cd ./app/packages/twilio/twilio
 python main.py "your message here
 ```
