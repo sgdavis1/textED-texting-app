@@ -34,7 +34,7 @@ python __main__.py "Your message here"
 
 ### How to deploy
 
-Note: you'll need the docker cli installed and configured. You can install it via `brew install doctl` on Mac.
+_NOTE_: you'll need the Digital Ocean CLI tool [installed and configured](https://docs.digitalocean.com/reference/doctl/how-to/install/). 
 
 ```bash
 doctl serverless deploy app  --remote-build
@@ -42,7 +42,7 @@ doctl serverless deploy app  --remote-build
 
 ### Is there testing?
 
-No, not really. I'm just lazy.
+No, not really. Previous developer was just lazy.
 
 ### Are there analytics?
 
@@ -84,3 +84,11 @@ Example:
     # ... more keywords and their counts
 }
 ```
+
+## Current Production credentials
+
+Currently production credentials are associated with the following accounts:
+| Service | email | 2FA |
+| --- | --- | --- |
+| Twilio | treasurer@edciowa.org | Yes (TOTP) |
+| Digital Ocean | sgdavis1@gmail.com | OAuth via Github |
