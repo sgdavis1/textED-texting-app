@@ -1,29 +1,50 @@
+import datetime
 import json
+import logging
+import os
+import sys
 from urllib.parse import urlparse
-from twilio.rest import Client
-from rapidfuzz.fuzz import partial_ratio
 
 from boto3 import session
-import os
-import logging
+from botocore.exceptions import ClientError
 from dotenv import load_dotenv
-import datetime
+from rapidfuzz.fuzz import partial_ratio
+from twilio.rest import Client
 
-logging = logging.getLogger(__name__)
+# Helpful modules for development
+import inspect
+from pprint import pprint
+
+# Logging setup
+# TODO: level should be defined somewhere (and higher in development / production)
+# TODO: Make sure logging is compatible with the Digital Ocean Serverless Function environment
+logger = logging.getLogger("texted")
+logger.setLevel(logging.DEBUG)
+sh = logging.StreamHandler(stream=sys.stdout)
+sh.setFormatter(logging.Formatter("[%(name)s] %(levelname)8s:  %(message)s"))
+logger.addHandler(sh)
 
 load_dotenv()
 account_sid = os.environ["TWILIO_ACCOUNT_SID"]
 auth_token = os.environ["TWILIO_AUTH_TOKEN"]
-client = Client(account_sid, auth_token)
+twilio_client = Client(account_sid, auth_token)
 
-# ========================== Analytics ==========================
-# NOTE: I don't know if this is wanted, so its disabled, but I thought it would be cool.
-ENABLE_ANALYTICS = False
-ADMIN_PHONE_NUMBERS = ["+13192406893"]  # jed's phone number
+# TODO: Add this to development .env
+ADMIN_PHONE_NUMBERS = ["+13196215249"]  # Steve's phone number
+
+
+# Error handling setup
+class CredentialsError(Exception):
+    pass
 
 
 def create_spaces_client():
     new_session = session.Session()
+    # TODO: Add error handling here
+    if os.getenv("DO_SPACES_KEY") is None or os.getenv('DO_SPACES_SECRET') is None:
+        logger.error('Missing Digital Ocean Spaces Access Key or Secret...')
+        raise CredentialsError("Missing Digital Ocean credentials")
+
     return new_session.client(
         "s3",
         region_name="nyc3",
@@ -32,31 +53,45 @@ def create_spaces_client():
         aws_secret_access_key=os.getenv("DO_SPACES_SECRET"),
     )
 
-
 # File operations in Digital Ocean Spaces
+# TODO: Handle error exceptions by notifying the user of an issue
 def does_file_exist(filename):
+    # TODO: move to .env config
+    bucket = "edci-texts"
     try:
-        create_spaces_client().head_object(Bucket="edci-texts", Key=filename)
+        # NOTE: Cannot use 'head_object' here, even though we don't care about the file contents
+        #   https://github.com/boto/boto3/issues/2442
+        create_spaces_client().get_object(Bucket=bucket, Key=filename)
         return True
-    except: # noqa
+    except CredentialsError as ex:
+        logger.warning("Credentials problem with Digital Ocean Spaces")
+        return False
+    except ClientError as ex:
+        if ex.response['Error']['Code'] == 'NoSuchKey':
+            logger.debug(f"Could not find {filename}")
+        elif ex.response['Error']['Code'] == 'NoSuchBucket':
+            logger.error(f"Bucket not found {bucket}")
+            raise
+        else:
+            raise
         return False
 
 
 def get_file_contents(filename):
     try:
+        # TODO
         response = create_spaces_client().get_object(Bucket="edci-texts", Key=filename)
         return response["Body"].read().decode("utf-8")
-    except: # noqa
+    except:  # noqa
         return None
 
 
 def create_new_file(filename, content=""):
     try:
-        create_spaces_client().put_object(
-            Bucket="edci-texts", Key=filename, Body=content
-        )
+        # TODO
+        create_spaces_client().put_object(Bucket="edci-texts", Key=filename, Body=content)
         return True
-    except: # noqa
+    except:  # noqa
         return False
 
 
@@ -64,7 +99,7 @@ def delete_file(filename):
     try:
         create_spaces_client().delete_object(Bucket="edci-texts", Key=filename)
         return True
-    except: # noqa
+    except:  # noqa
         return False
 
 
@@ -73,27 +108,31 @@ def delete_file(filename):
 
 
 def send_message(message: dict) -> str:
-    # call the twillo api
+    logger.debug(message)
+
+    # Prepare to call the Twilio api
     phone = message.get("phone")
     text = message["text"]
-    # dont actual send a message if we are developing locally
     stage = os.environ.get("STAGE", "dev")
-    print(message)
+
+    # Only send messages in production mode
     if stage == "prod":
         if message.get("media_url"):
             # sending a media message, which is just a text message with a media url
-            tw_message = client.messages.create(
+            tw_message = twilio_client.messages.create(
                 body=text,
                 from_=os.environ["TWILIO_ACCOUNT_PHONE_NUMBER"],
                 to=phone,
                 media_url=message.get("media_url"),
             )
         else:
-            tw_message = client.messages.create(
+            tw_message = twilio_client.messages.create(
                 body=text, from_=os.environ["TWILIO_ACCOUNT_PHONE_NUMBER"], to=phone
             )
         sid = tw_message.sid
-        print(f"message sent: {sid}")
+        logger.info(f"Message sent: {sid}")
+    else:
+        logger.info(f"Not calling Twilio API for response when in {stage}")
 
     return message
 
@@ -182,9 +221,9 @@ def handle_first_message(message: dict) -> dict:
 
     responses = get_responses()
     # ignore the greeting
-    ingore_keys = ["Greeting"]
+    ignore_keys = ["Greeting"]
     responses = {
-        key: value for key, value in responses.items() if key not in ingore_keys
+        key: value for key, value in responses.items() if key not in ignore_keys
     }
     first_message += "".join(
         [f"\n{key} -  {item['text']}" for key, item in responses.items()]
@@ -208,84 +247,17 @@ def handle_reset(message: dict) -> dict:
     return outgoing_message
 
 
-def handle_get_analytics(message: dict) -> dict:
-    # make sure the user is an admin
-    phone = message.get("phone")
-
-    if phone not in ADMIN_PHONE_NUMBERS:
-        return {"phone": message.get("phone"), "text": "Error"}
-
-    # get the analytics
-    analytics = get_file_contents("keyword_analytics.json")
-
-    # make an easy to read version
-    analytics = json.loads(analytics)
-    pretty_string = "Analytics \n"
-    updated_at = None
-    created_at = None
-    key_value_string = ""
-    for key, value in analytics.items():
-        if key == "last_updated":
-            updated_at = value
-            continue
-        elif key == "created_at":
-            created_at = value
-            continue
-        else:
-            key_value_string += f"{key}: {value}\n"
-
-    pretty_string += f"Since: {created_at}\n"
-    pretty_string += f"Latest: {updated_at}\n\n\n"
-
-    pretty_string += key_value_string
-
-    return {"phone": message.get("phone"), "text": pretty_string}
-
-
-def log_keyword_usage(keyword: str) -> None:
-    """Log the keyword usage
-
-    keyword: the keyword that was used
-
-    returns: None
-
-    This just increments the keyword usage in the keyword_analytics.json file.
-    It might slow down the response time.
-    """
-
-    # get the latest value
-    # if the analytics file doesnt exist, create it
-    analyics_filename = "keyword_analytics.json"
-
-    try:
-        if not does_file_exist(analyics_filename):
-            new_file = {
-                "created_at": datetime.datetime.utcnow().isoformat(),
-            }
-            create_new_file(analyics_filename, json.dumps(new_file, indent=4))
-
-        current_analytics = get_file_contents(analyics_filename)
-        current_analytics = json.loads(current_analytics)
-
-        # increment the value
-        current_analytics[keyword] = current_analytics.get(keyword, 0) + 1
-        # update the last updated time
-        current_analytics["last_updated"] = datetime.datetime.utcnow().isoformat()
-
-        # write the new value
-        create_new_file(analyics_filename, json.dumps(current_analytics, indent=4))
-    except Exception as e:
-        print("error logging keyword usage: ", e)
-
-
 def handle_message(message: dict) -> str:
-    # identify the phone number to text back
-    print("handling message : ", message)
+    # TODO: Create a Spaces client once -- pass down to function
+
+    # Identify the phone number to text back
+    logger.debug("Handling message : ", message)
     phone = message.get("phone")
     # determine which function to call based on message text
     is_first_message = determine_is_first_message(phone)
 
     if is_first_message:
+        print("this is our first message from: ", phone)
         return handle_first_message(message)
 
     text = message.get("text")
@@ -294,10 +266,6 @@ def handle_message(message: dict) -> str:
     if text.lower() == "reset":
         # delete the file for this phone number
         return handle_reset(message)
-
-    # handle the analytics message
-    if text.lower() == "analytics":
-        return handle_get_analytics(message)
 
     # create the outgoing message dictionary for send_message to use later
     outgoing_message = {"phone": phone, "text": None}
@@ -313,28 +281,20 @@ def handle_message(message: dict) -> str:
     # Check the configuration for this number.
     if text.lower() == "help":
         outgoing_message["text"] = (
-            "The following keywords can be used to find resources: " + help_text
+                "The following keywords can be used to find resources: " + help_text
         )
         return outgoing_message
 
     ranked_keyword = keyword_ranker(text, responses)
-    print("ranked keyword: ", ranked_keyword)
+    logger.debug("ranked keyword: ", ranked_keyword)
     # if the score is less than .5, then the keyword is not recognized
     if ranked_keyword.get("score", 0) <= 0.5:
         keyword_help_text = (
-            f"Not recongized. Try using one of the following: {help_text}"
+            f"Not recognized. Try using one of the following: {help_text}"
         )
         outgoing_message["text"] = keyword_help_text
-
-        # log the keyword usage if enabled
-        if ENABLE_ANALYTICS:
-            log_keyword_usage("Not recognized")
     else:
         matched_keyword = ranked_keyword.get("key")
-
-        # log the keyword usage if enabled
-        if ENABLE_ANALYTICS:
-            log_keyword_usage(matched_keyword)
 
         response = responses[matched_keyword]
         text_response = response.get("text")
@@ -362,31 +322,30 @@ def validate_responses_file():
         key = key.lower()
         # make sure the key is a string
         if not isinstance(key, str):
-            errors.append((f"Invalid key, must be string: {key}"))
+            errors.append(f"Invalid key, must be string: {key}")
         # test is required
         if not value.get("text"):
-            errors.append((f"Missing text for {key}"))
+            errors.append(f"Missing text for {key}")
         # not required, but if it exists, it must be a list
         if value.get("aliases"):
             if not isinstance(value.get("aliases"), list):
-                errors.append((f"Invalid aliases for key: {key}"))
+                errors.append(f"Invalid aliases for key: {key}")
 
                 # make sure each alias is a string
                 for alias in value.get("aliases"):
                     if not isinstance(alias, str):
-                        errors.append((f"Invalid alias for key: {key}, Alias: {alias}"))
+                        errors.append(f"Invalid alias for key: {key}, Alias: {alias}")
         if value.get("image_url"):
             scheme = None
             try:
                 scheme = urlparse(value.get("image_url")).scheme
 
                 if scheme not in ["http", "https"]:
-                    errors.append((f"Invalid image_url for key: {key}"))
+                    errors.append(f"Invalid image_url for key: {key}")
             except Exception:
-                errors.append((f"Invalid image_url for key: {key}"))
+                errors.append(f"Invalid image_url for key: {key}")
 
     if len(errors) > 0:
-
         error_str = "\n".join(errors)
         raise Exception(f"Invalid responses.json file. Errors:\n {error_str}")
 
@@ -397,7 +356,7 @@ def main(args):
     from_phone = args.get("From")
     message = args.get("Body")
 
-    logging.info(f"from: {from_phone}, message: {message}")
+    logger.info(f"from: {from_phone}, message: {message}")
 
     incoming_message = {"phone": from_phone, "text": message}
     try:
@@ -407,15 +366,13 @@ def main(args):
         print("error: ", e.__str__())
         return {"statusCode": 500, "body": e.__str__()}
 
-    return {"statusCode": 200, "body": "Hey"}
+    return {"statusCode": 200, "body": "Successful execution"}
 
 
 if __name__ == "__main__":
-    import sys
-
     args = sys.argv
     msg = {
-        "From": "+13192406893",
+        "From": ADMIN_PHONE_NUMBERS[0],
         "Body": args[1] if len(args) > 1 else "help",
     }
     main(msg)
