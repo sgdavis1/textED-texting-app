@@ -1,4 +1,4 @@
-twilio==7.8.0
-rapidfuzz==2.13.7
-python-dotenv==0.21.1
-boto3==1.26.104
+twilio==9.0.0
+rapidfuzz==3.6.2
+python-dotenv==1.0.1
+boto3==1.34.58
