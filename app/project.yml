@@ -8,6 +8,8 @@ environment:
 
 packages:
   - name: twilio
-    actions:
+    functions:
       - name: twilio
         runtime: 'python:default'
+        limits:
+          memory: 384
