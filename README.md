@@ -44,10 +44,11 @@ this should be updated to use the preferred and more secure "API key" method.
 After creating a Digital Ocean account you will need to create a **Spaces Key** and  **Secret**. 
 These can be created from the DO console here: https://cloud.digitalocean.com/
 
+Your account will need an existing bucket with the name defined in your `.env` settings.
 
 ### Running the app
 
-Inside of the `/app/packages/twilio/twilio` directory
+Inside the `/app/packages/twilio/twilio` directory
 
 ```bash
 python __main__.py "Your message here"
@@ -55,10 +56,50 @@ python __main__.py "Your message here"
 
 ## How to deploy
 
-_NOTE_: you'll need the Digital Ocean CLI tool [installed and configured](https://docs.digitalocean.com/reference/doctl/how-to/install/). 
+_NOTE_: you'll need the Digital Ocean CLI tool [installed and configured](https://docs.digitalocean.com/reference/doctl/how-to/install/).
+  Remember to create a valid functions Namespace as well.
+
+Before deployment, make sure that all of the required environment variables are set in your
+current shell, or the deployment will fail with `Error: The following substitutions could not be resolved:`
 
 ```bash
-doctl serverless deploy app  --remote-build
+set -a
+source app/package/twilio/twilio/.env
+set +a
+```
+
+Deploy with the `doctl` tool:
+
+```bash
+doctl serverless deploy app
+```
+
+### Testing deployed function
+
+Once deployed, there are several methods of testing the function. It is a good idea to first change
+the deployed `STAGE` of the function to `dev` so that Twilio API calls are not made during your 
+testing, unless this is desired.
+
+#### Using The Digital Ocean Console
+
+Navigate through the console to the function that was just deployed. There is a section to 
+adjust the incoming parameters, you will need to set a valid JSON body with the properties `From` and `Body`
+in order to get the function to execute properly. These values are retained in the console but do not affect
+external Web / REST calls.
+
+#### Using `curl`
+
+You can use a curl call from any system with an internet connection that should execute the function
+and return the response 'Successful execution' with a response code of 200.
+
+The specific syntax for the call is documented in the Functions console as a `GET` request, but you will
+need to use a `POST` request with  in order to pass a valid body of a JSON object containing the `From` 
+and `Body` parameters.
+
+Example:
+```bash
+curl -X POST "FUNCTION_URL_FROM_DIGITAL_OCEAN_CONSOLE" \
+  -H "Content-Type: application/json" -d '{"From": "15555555555", "Body": "Hello"}'
 ```
 
 ## General Notes
@@ -110,7 +151,8 @@ Example:
 
 ## Current Production credentials
 
-Currently production credentials are associated with the following accounts:
+Currently, production credentials are associated with the following accounts:
+
 | Service | email | 2FA |
 | --- | --- | --- |
 | Twilio | treasurer@edciowa.org | Yes (TOTP) |
