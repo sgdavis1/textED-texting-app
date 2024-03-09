@@ -1,7 +1,8 @@
+# Twilio credentials (All required)
 TWILIO_ACCOUNT_SID=
 TWILIO_AUTH_TOKEN=
 TWILIO_ACCOUNT_PHONE_NUMBER=
-FLASK_APP=
-FLASK_ENV=
-FLASK_DEBUG=
-FLASK_RUN_PORT=
+
+# Digital Ocean Spaces access keys (All required)
+DO_SPACES_KEY=
+DO_SPACES_SECRET=
