@@ -12,13 +12,13 @@
 First setup
 
 ```bash
-git clone git@github.com:jrmeier/textED-texting-app.git
+git clone git@github.com:sgdavis1/textED-texting-app.git
 cd ./textED-texting-app
 # create a virtual environment
-python -m venv .texted_texting_app
+python -m venv venv
 # install requirements
 # NOTE: you need to keep this up to date with the requirements.txt in the function directory or just use that
-source .texted_texting_app/bin/activate
+source venv/bin/activate
 pip install -r ./app/packages/twilio/twilio/requirements.txt
 cp env-example ./app/packages/twilio/twilio/.env
 cd ./app/packages/twilio/twilio
