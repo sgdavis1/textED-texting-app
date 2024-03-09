@@ -24,6 +24,27 @@ cp env-example ./app/packages/twilio/twilio/.env
 cd ./app/packages/twilio/twilio
 ```
 
+### Configuring the environment
+
+The `.env` requires several valid settings to enable local execution
+
+* Twilio Account credentials
+* Digital Ocean credentials
+
+#### Twilio account credentials
+
+Twilio will require an **Auth token** and a valid sender **phone number**. These can be created from the
+Twilio console available here: https://console.twilio.com/
+
+_Note:_ The current application uses the older authentication style "Auth token". In the future, 
+this should be updated to use the preferred and more secure "API key" method.
+
+#### Digital Ocean account credentials
+
+After creating a Digital Ocean account you will need to create a **Spaces Key** and  **Secret**. 
+These can be created from the DO console here: https://cloud.digitalocean.com/
+
+
 ### Running the app
 
 Inside of the `/app/packages/twilio/twilio` directory
@@ -32,13 +53,15 @@ Inside of the `/app/packages/twilio/twilio` directory
 python __main__.py "Your message here"
 ```
 
-### How to deploy
+## How to deploy
 
 _NOTE_: you'll need the Digital Ocean CLI tool [installed and configured](https://docs.digitalocean.com/reference/doctl/how-to/install/). 
 
 ```bash
 doctl serverless deploy app  --remote-build
 ```
+
+## General Notes
 
 ### Is there testing?
 
