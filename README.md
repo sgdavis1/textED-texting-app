@@ -59,6 +59,16 @@ python __main__.py "Your message here"
 _NOTE_: you'll need the Digital Ocean CLI tool [installed and configured](https://docs.digitalocean.com/reference/doctl/how-to/install/).
   Remember to create a valid functions Namespace as well.
 
+### Preferred: Script
+
+Simply run the supplied deployment script:
+
+```bash
+./deploy.sh
+```
+
+### Alternative: Manual deployment
+
 Before deployment, make sure that all of the required environment variables are set in your
 current shell, or the deployment will fail with `Error: The following substitutions could not be resolved:`
 
