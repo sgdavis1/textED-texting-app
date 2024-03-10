@@ -16,13 +16,24 @@ import inspect
 from pprint import pprint
 
 # Logging setup
-# TODO: level should be defined somewhere (and higher in development / production)
-# TODO: Make sure logging is compatible with the Digital Ocean Serverless Function environment
 logger = logging.getLogger("texted")
-logger.setLevel(logging.DEBUG)
+level = os.getenv('LOGGING_LEVEL', 'debug')
+if level == 'critical':
+    logger.setLevel(logging.CRITICAL)
+elif level == 'error':
+    logger.setLevel(logging.ERROR)
+elif level == 'warning':
+    logger.setLevel(logging.WARNING)
+elif level == 'info':
+    logger.setLevel(logging.INFO)
+else:
+    level = 'debug'
+    logger.setLevel(logging.DEBUG)
+
 sh = logging.StreamHandler(stream=sys.stdout)
 sh.setFormatter(logging.Formatter("[%(name)s] %(levelname)8s:  %(message)s"))
 logger.addHandler(sh)
+logger.info(f"Logging level set to {level}")
 
 load_dotenv()
 account_sid = os.environ["TWILIO_ACCOUNT_SID"]
@@ -33,8 +44,8 @@ twilio_client = Client(account_sid, auth_token)
 ADMIN_PHONE_NUMBERS = ["+13196215249"]  # Steve's phone number
 
 
-# Error handling setup
 class CredentialsError(Exception):
+    """Custom exception used whenever there is a problem with the Digital Ocean or Twilio credentials."""
     pass
 
 
@@ -53,15 +64,14 @@ def create_spaces_client():
         aws_secret_access_key=os.getenv("DO_SPACES_SECRET"),
     )
 
+
 # File operations in Digital Ocean Spaces
 # TODO: Handle error exceptions by notifying the user of an issue
 def does_file_exist(filename):
-    # TODO: move to .env config
-    bucket = "edci-texts"
     try:
         # NOTE: Cannot use 'head_object' here, even though we don't care about the file contents
         #   https://github.com/boto/boto3/issues/2442
-        create_spaces_client().get_object(Bucket=bucket, Key=filename)
+        create_spaces_client().get_object(Bucket=os.getenv("DO_BUCKET_NAME"), Key=filename)
         return True
     except CredentialsError as ex:
         logger.warning("Credentials problem with Digital Ocean Spaces")
@@ -80,7 +90,7 @@ def does_file_exist(filename):
 def get_file_contents(filename):
     try:
         # TODO
-        response = create_spaces_client().get_object(Bucket="edci-texts", Key=filename)
+        response = create_spaces_client().get_object(Bucket=os.getenv("DO_BUCKET_NAME"), Key=filename)
         return response["Body"].read().decode("utf-8")
     except:  # noqa
         return None
@@ -89,7 +99,7 @@ def get_file_contents(filename):
 def create_new_file(filename, content=""):
     try:
         # TODO
-        create_spaces_client().put_object(Bucket="edci-texts", Key=filename, Body=content)
+        create_spaces_client().put_object(Bucket=os.getenv("DO_BUCKET_NAME"), Key=filename, Body=content)
         return True
     except:  # noqa
         return False
@@ -97,14 +107,10 @@ def create_new_file(filename, content=""):
 
 def delete_file(filename):
     try:
-        create_spaces_client().delete_object(Bucket="edci-texts", Key=filename)
+        create_spaces_client().delete_object(Bucket=os.getenv("DO_BUCKET_NAME"), Key=filename)
         return True
     except:  # noqa
         return False
-
-
-# ====================================== twilio/utils.py ================================
-# Twilio is all the text messaging stuff
 
 
 def send_message(message: dict) -> str:
@@ -352,11 +358,20 @@ def validate_responses_file():
     print("responses.json file is valid")
 
 
-def main(args):
-    from_phone = args.get("From")
-    message = args.get("Body")
+def main(event, context):
+    """Main function
 
-    logger.info(f"from: {from_phone}, message: {message}")
+    This function is expected for the Digital Ocean Serverless functions execution.
+    By default, the main function is called with two parameters (event and context)
+
+    See official documentation here: https://docs.digitalocean.com/products/functions/reference/runtimes/python/
+    """
+    from_phone = event.get("From")
+    message = event.get("Body")
+
+    logger.info(f"Received event. From: {from_phone}, Message: {message}")
+    logger.debug(f"Event  : {event}")
+    logger.debug(f"Context: {context}")
 
     incoming_message = {"phone": from_phone, "text": message}
     try:
@@ -369,10 +384,11 @@ def main(args):
     return {"statusCode": 200, "body": "Successful execution"}
 
 
+"""Command line execution"""
 if __name__ == "__main__":
     args = sys.argv
     msg = {
         "From": ADMIN_PHONE_NUMBERS[0],
         "Body": args[1] if len(args) > 1 else "help",
     }
-    main(msg)
+    main(msg, {})
