@@ -80,7 +80,7 @@ def does_file_exist(filename):
         if ex.response['Error']['Code'] == 'NoSuchKey':
             logger.debug(f"Could not find {filename}")
         elif ex.response['Error']['Code'] == 'NoSuchBucket':
-            logger.error(f"Bucket not found {bucket}")
+            logger.error(f"Bucket not found {os.getenv('DO_BUCKET_NAME')}")
             raise
         else:
             raise
@@ -114,7 +114,7 @@ def delete_file(filename):
 
 
 def send_message(message: dict) -> str:
-    logger.debug(message)
+    logger.debug(f"Sending message: {message}")
 
     # Prepare to call the Twilio api
     phone = message.get("phone")
@@ -199,6 +199,7 @@ def determine_is_first_message(phone: str) -> bool:
     """
     # check if the phone number is in the database
     # remove the +1 from the phone number
+    # TODO: Handle international numbers properly (cannot assume +1 prefix)
     phone = phone[1:]
     filename = f"{phone}.txt"
     return not does_file_exist(filename)
@@ -257,13 +258,13 @@ def handle_message(message: dict) -> str:
     # TODO: Create a Spaces client once -- pass down to function
 
     # Identify the phone number to text back
-    logger.debug("Handling message : ", message)
+    logger.debug(f"Handling message: {message}")
     phone = message.get("phone")
     # determine which function to call based on message text
     is_first_message = determine_is_first_message(phone)
 
     if is_first_message:
-        logging.info("This is our first message from: ", phone)
+        logging.info(f"This is our first message from: {phone}")
         return handle_first_message(message)
 
     text = message.get("text")
@@ -292,12 +293,10 @@ def handle_message(message: dict) -> str:
         return outgoing_message
 
     ranked_keyword = keyword_ranker(text, responses)
-    logger.debug("ranked keyword: ", ranked_keyword)
+    logger.debug(f"ranked keyword: {ranked_keyword}")
     # if the score is less than .5, then the keyword is not recognized
     if ranked_keyword.get("score", 0) <= 0.5:
-        keyword_help_text = (
-            f"Not recognized. Try using one of the following: {help_text}"
-        )
+        keyword_help_text = f"Not recognized. Try using one of the following: {help_text}"
         outgoing_message["text"] = keyword_help_text
     else:
         matched_keyword = ranked_keyword.get("key")
@@ -390,4 +389,5 @@ if __name__ == "__main__":
         "From": ADMIN_PHONE_NUMBERS[0],
         "Body": args[1] if len(args) > 1 else "help",
     }
-    main(msg, {})
+
+    main(msg)
