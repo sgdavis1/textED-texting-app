@@ -376,7 +376,7 @@ def main(event):
         reply_msg = handle_message(incoming_message)
         send_message(reply_msg)
     except Exception as e:
-        logging.error("Internal server error: ", e.__str__())
+        logger.error(f"Internal server error: {e.__str__()}")
         return {"statusCode": 500, "body": e.__str__()}
 
     return {"statusCode": 200, "body": "Successful execution"}
@@ -390,4 +390,5 @@ if __name__ == "__main__":
         "Body": args[1] if len(args) > 1 else "help",
     }
 
-    main(msg)
+    main({})
+    # main(msg)
