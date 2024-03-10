@@ -263,7 +263,7 @@ def handle_message(message: dict) -> str:
     is_first_message = determine_is_first_message(phone)
 
     if is_first_message:
-        print("this is our first message from: ", phone)
+        logging.info("This is our first message from: ", phone)
         return handle_first_message(message)
 
     text = message.get("text")
@@ -355,10 +355,10 @@ def validate_responses_file():
         error_str = "\n".join(errors)
         raise Exception(f"Invalid responses.json file. Errors:\n {error_str}")
 
-    print("responses.json file is valid")
+    logger.debug("The 'responses.json' file is valid")
 
 
-def main(event, context):
+def main(event):
     """Main function
 
     This function is expected for the Digital Ocean Serverless functions execution.
@@ -370,15 +370,14 @@ def main(event, context):
     message = event.get("Body")
 
     logger.info(f"Received event. From: {from_phone}, Message: {message}")
-    logger.debug(f"Event  : {event}")
-    logger.debug(f"Context: {context}")
+    logger.debug(f"Complete event details:  {event}")
 
     incoming_message = {"phone": from_phone, "text": message}
     try:
         reply_msg = handle_message(incoming_message)
         send_message(reply_msg)
     except Exception as e:
-        print("error: ", e.__str__())
+        logging.error("Internal server error: ", e.__str__())
         return {"statusCode": 500, "body": e.__str__()}
 
     return {"statusCode": 200, "body": "Successful execution"}
