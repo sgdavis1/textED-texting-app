@@ -19,9 +19,8 @@ python -m venv venv
 # install requirements
 # NOTE: you need to keep this up to date with the requirements.txt in the function directory or just use that
 source venv/bin/activate
-pip install -r ./app/packages/twilio/twilio/requirements.txt
-cp env-example ./app/packages/twilio/twilio/.env
-cd ./app/packages/twilio/twilio
+pip install -r ./app/packages/edciowa/texted/requirements.txt
+cp env-example ./app/packages/edciowa/texted/.env
 ```
 
 ### Configuring the environment
@@ -48,7 +47,7 @@ Your account will need an existing bucket with the name defined in your `.env` s
 
 ### Running the app
 
-Inside the `/app/packages/twilio/twilio` directory
+Inside the `/app/packages/edciowa/texted/` directory
 
 ```bash
 python __main__.py "Your message here"
@@ -74,7 +73,7 @@ current shell, or the deployment will fail with `Error: The following substituti
 
 ```bash
 set -a
-source app/package/twilio/twilio/.env
+source app/package/edciowa/texted/.env
 set +a
 ```
 
@@ -130,7 +129,7 @@ To persist the user state. We just store a the phone number as an empty text fil
 
 ### How does the keyword matching work?
 
-To extract the "intent" or "keyword", we really just do a fuzzy match. This is the library I used: [rapidfuzz](https://pypi.org/project/rapidfuzz/). It simple and fast, but doesn't work beyond simple matching. We are just trying to handle the edge cases where people don't send exactly the right keywords, kind of like an autocorrect. See the [main](/app/packages/twilio/twilio/__main__.py#L106) for more details.
+To extract the "intent" or "keyword", we really just do a fuzzy match. This is the library I used: [rapidfuzz](https://pypi.org/project/rapidfuzz/). It simple and fast, but doesn't work beyond simple matching. We are just trying to handle the edge cases where people don't send exactly the right keywords, kind of like an autocorrect. See the [main](/app/packages/edciowa/texted/__main__.py#L106) for more details.
 
 ### How do I add/edit/remove responses?
 

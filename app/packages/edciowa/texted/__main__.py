@@ -264,7 +264,7 @@ def handle_message(message: dict) -> str:
     is_first_message = determine_is_first_message(phone)
 
     if is_first_message:
-        logging.info(f"This is our first message from: {phone}")
+        logger.info(f"This is our first message from: {phone}")
         return handle_first_message(message)
 
     text = message.get("text")
@@ -368,10 +368,18 @@ def main(event):
     from_phone = event.get("From")
     message = event.get("Body")
 
+    # Error handling (need a phone, message can be empty -- not None)
+    # TODO: use a best practice phone number regex here
+    message = "" if message is None else message
+    if from_phone is None:
+        logger.warning(f"Cannot process incoming events without a 'From' phone: {from_phone}")
+        return {"statusCode": 400, "body": "Cannot process incoming events without a 'From' phone"}
+
     logger.info(f"Received event. From: {from_phone}, Message: {message}")
     logger.debug(f"Complete event details:  {event}")
 
     incoming_message = {"phone": from_phone, "text": message}
+
     try:
         reply_msg = handle_message(incoming_message)
         send_message(reply_msg)
@@ -390,5 +398,4 @@ if __name__ == "__main__":
         "Body": args[1] if len(args) > 1 else "help",
     }
 
-    main({})
-    # main(msg)
+    main(msg)

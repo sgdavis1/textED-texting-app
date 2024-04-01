@@ -9,9 +9,9 @@ environment:
   STAGE: 'prod'
 
 packages:
-  - name: twilio
+  - name: edciowa
     functions:
-      - name: twilio
+      - name: texted
         runtime: 'python:default'
         limits:
           memory: 384
