@@ -22,7 +22,6 @@ load_dotenv()
 
 
 # Sentry setup
-print(os.getenv('SENTRY_DSN', ''))
 sentry_event_level = logging.WARNING
 if os.getenv('SENTRY_EVENT_LEVEL') == 'INFO':
     sentry_event_level = logging.INFO
@@ -34,7 +33,7 @@ sentry_sdk.init(
     dsn=os.getenv('SENTRY_DSN', ''),
     integrations=[
         LoggingIntegration(
-            level=logging.DEBUG,          # Capture this level and above as breadcrumbs on events that occur
+            level=logging.DEBUG,            # Capture this level and above as breadcrumbs on events that occur
             event_level=sentry_event_level  # Send this level as events
         ),
     ],
@@ -405,7 +404,6 @@ def main(event):
 
     incoming_message = {"phone": from_phone, "text": message}
 
-    logger.warning("testing3")
     try:
         reply_msg = handle_message(incoming_message)
         send_message(reply_msg)
