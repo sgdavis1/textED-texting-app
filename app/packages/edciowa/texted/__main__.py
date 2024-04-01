@@ -2,7 +2,9 @@ import datetime
 import json
 import logging
 import os
+import sentry_sdk
 import sys
+from sentry_sdk.integrations.logging import LoggingIntegration
 from urllib.parse import urlparse
 
 from boto3 import session
@@ -14,6 +16,29 @@ from twilio.rest import Client
 # Helpful modules for development
 import inspect
 from pprint import pprint
+
+# Configure all ENV settings
+load_dotenv()
+
+
+# Sentry setup
+print(os.getenv('SENTRY_DSN', ''))
+sentry_event_level = logging.WARNING
+if os.getenv('SENTRY_EVENT_LEVEL') == 'INFO':
+    sentry_event_level = logging.INFO
+elif os.getenv('SENTRY_EVENT_LEVEL') == 'WARNING':
+    sentry_event_level = logging.WARNING
+elif os.getenv('SENTRY_EVENT_LEVEL') == 'ERROR':
+    sentry_event_level = logging.ERROR
+sentry_sdk.init(
+    dsn=os.getenv('SENTRY_DSN', ''),
+    integrations=[
+        LoggingIntegration(
+            level=logging.DEBUG,          # Capture this level and above as breadcrumbs on events that occur
+            event_level=sentry_event_level  # Send this level as events
+        ),
+    ],
+)
 
 # Logging setup
 logger = logging.getLogger("texted")
@@ -30,12 +55,12 @@ else:
     level = 'debug'
     logger.setLevel(logging.DEBUG)
 
+
 sh = logging.StreamHandler(stream=sys.stdout)
 sh.setFormatter(logging.Formatter("[%(name)s] %(levelname)8s:  %(message)s"))
 logger.addHandler(sh)
 logger.info(f"Logging level set to {level}")
 
-load_dotenv()
 account_sid = os.environ["TWILIO_ACCOUNT_SID"]
 auth_token = os.environ["TWILIO_AUTH_TOKEN"]
 twilio_client = Client(account_sid, auth_token)
@@ -380,6 +405,7 @@ def main(event):
 
     incoming_message = {"phone": from_phone, "text": message}
 
+    logger.warning("testing3")
     try:
         reply_msg = handle_message(incoming_message)
         send_message(reply_msg)
