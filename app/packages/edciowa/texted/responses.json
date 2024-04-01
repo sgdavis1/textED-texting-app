@@ -1,44 +1,44 @@
 {
     "First steps": {
         "aliases": ["start","Start","START"],
-        "text":"First steps for what to do if you (or a loved one) think you have an eating disorder",
+        "text":"First steps for what to do if you (or a loved one) think you have an eating disorder\n\nhttps://www.edciowa.com/_files/ugd/93ebaa_56f91966ee0444d580c99791f8f7c750.pdf",
         "image_url":"https://www.edciowa.com/_files/ugd/93ebaa_56f91966ee0444d580c99791f8f7c750.pdf"
     },
     "Recovery": {
-        "text": "Helpful topics as you start recovery",
+        "text": "Helpful topics as you start recovery\n\nhttps://www.edciowa.com/_files/ugd/93ebaa_9ce20ca5cf1b46ef94355eec1e6d10a3.pdf",
         "aliases": ["Help myself", "help me","help self","restriction", "binging", "purging"],
         "ignore": ["How to help", "Help my loved one", "Help my child", "Help my friend", "Help my family member","Help my daughter","Help my son"],
         "image_url": "https://www.edciowa.com/_files/ugd/93ebaa_9ce20ca5cf1b46ef94355eec1e6d10a3.pdf"
     },
     "Diet Culture": {
-        "text":"Diet culture and what to know",
+        "text":"Diet culture and what to know\n\nhttps://www.edciowa.com/_files/ugd/93ebaa_51efcb3199cb45a28ce5f7670e2c6a41.pdf",
         "aliases":["dieting", "diet help","calories", "fat"],
         "image_url":"https://www.edciowa.com/_files/ugd/93ebaa_51efcb3199cb45a28ce5f7670e2c6a41.pdf"
     },
     "Caregiver": {
         "aliases": ["How to help", "Help my loved one", "Help my child", "Help my friend", "Help my family member","Help my daughter","Help my son","Help my spouse","Help my partner", "Help my sister","help my brother","Help my mom","Help my dad","Help my parent","Help my aunt","Help my uncle","Help my wife","Help my husband","Help my girlfriend","Help my boyfriend","help my sister"],
         "ignore": ["Help myself", "help me","help self"],
-        "text": "Introduction to resources for caregivers",
+        "text": "Introduction to resources for caregivers\n\nhttps://www.edciowa.com/_files/ugd/93ebaa_1d38d439238d46f89317e445303c46da.pdf",
         "image_url": "https://www.edciowa.com/_files/ugd/93ebaa_1d38d439238d46f89317e445303c46da.pdf"
     },
     "Provider": {
         "aliases": ["doctor","help my patient"],
-        "text": "Introduction for resources for providers",
+        "text": "Introduction for resources for providers\n\nhttps://www.edciowa.com/_files/ugd/93ebaa_e14006c08c2f4268be2bcdae23c13728.pdf",
         "image_url": "https://www.edciowa.com/_files/ugd/93ebaa_e14006c08c2f4268be2bcdae23c13728.pdf"
     },
 
     "Medical Guide": {
-        "text": "Medical Quick Guide for healthcare providers",
+        "text": "Medical Quick Guide for healthcare providers\n\nhttps://www.edciowa.com/_files/ugd/93ebaa_9eb6c084e4b24b929fa0587d405542d1.pdf",
         "aliases": ["medical","medical quick guide"],
         "image_url": "https://www.edciowa.com/_files/ugd/93ebaa_9eb6c084e4b24b929fa0587d405542d1.pdf"
     },
     "Weight Neutral Card": {
-        "text": "Weight Neutral Card",
+        "text": "Weight Neutral Card\n\nhttps://www.edciowa.com/_files/ugd/93ebaa_2d33bb227e1647babc56659c5fc9105a.pdf",
         "aliases":["weight card","weight neutral card"],
         "image_url":"https://www.edciowa.com/_files/ugd/93ebaa_2d33bb227e1647babc56659c5fc9105a.pdf"
     },
     "Treatment": {
-        "text": "Treatment",
+        "text": "Treatment\n\nhttps://www.edciowa.com/provider-listings",
         "image_url": "https://www.edciowa.com/provider-listings"
     },
     "Greeting":{

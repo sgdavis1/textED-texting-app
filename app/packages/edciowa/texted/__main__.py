@@ -153,7 +153,7 @@ def send_message(message: dict) -> str:
                 body=text,
                 from_=os.environ["TWILIO_ACCOUNT_PHONE_NUMBER"],
                 to=phone,
-                media_url=message.get("media_url"),
+                media_url=[message.get("media_url")],
             )
         else:
             tw_message = twilio_client.messages.create(
@@ -335,7 +335,7 @@ def handle_message(message: dict) -> str:
         if text_response:
             outgoing_message["text"] = text_response
         if image_response:
-            outgoing_message["media_url"] = image_response
+            outgoing_message["media_url"] = [image_response]
 
     return outgoing_message
 

@@ -47,7 +47,7 @@ Your account will need an existing bucket with the name defined in your `.env` s
 
 ### Sentry credentials
 
-You will need to setup a Sentry project to collect logs: https://sentry.io/
+You will need to set up a Sentry project to collect logs: https://sentry.io/
 
 ### Running the app
 
