@@ -45,6 +45,10 @@ These can be created from the DO console here: https://cloud.digitalocean.com/
 
 Your account will need an existing bucket with the name defined in your `.env` settings.
 
+### Sentry credentials
+
+You will need to setup a Sentry project to collect logs: https://sentry.io/
+
 ### Running the app
 
 Inside the `/app/packages/edciowa/texted/` directory

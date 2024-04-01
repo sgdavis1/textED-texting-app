@@ -3,6 +3,14 @@ TWILIO_ACCOUNT_SID=
 TWILIO_AUTH_TOKEN=
 TWILIO_ACCOUNT_PHONE_NUMBER=
 
+# Sentry SDK Setup
+#   NOTE: Located in tne console at "Settings > Org > project > Client Keys"
+# Sentry Event level indicates the lowest level that will create an "event" with
+#   breadcrumbs automatically generated for any logs up to DEBUG base on the same
+#   execution of the application
+SENTRY_DSN=
+SENTRY_EVENT_LEVEL=
+
 # Digital Ocean Spaces access keys (All required)
 DO_SPACES_KEY=
 DO_SPACES_SECRET=
