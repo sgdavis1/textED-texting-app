@@ -141,7 +141,7 @@ def delete_file(filename):
         return False
 
 
-def send_message(message: dict) -> str:
+def send_message(message: dict) -> None:
     logger.debug(f"Sending message: {message}")
 
     # Prepare to call the Twilio api
@@ -168,7 +168,7 @@ def send_message(message: dict) -> str:
     else:
         logger.info(f"Not calling Twilio API for response when in {stage}")
 
-    return message
+    return
 
 
 # ====================================== main.py ================================
@@ -250,20 +250,11 @@ def handle_first_message(message: dict) -> dict:
     # mark this phone number as having sent a message
     phone = message.get("phone")
     mark_number_as_sent(phone)
+
     # send the welcome message
+    first_message = get_responses()["Greeting1"]
 
-    first_message = "Thanks for messaging TextED! The following keywords can be used to find resources: "
-
-    responses = get_responses()
-    # ignore the greeting
-    ignore_keys = ["Greeting"]
-    responses = {
-        key: value for key, value in responses.items() if key not in ignore_keys
-    }
-    first_message += "".join(
-        [f"\n{key} -  {item['text']}" for key, item in responses.items()]
-    )
-
+    logger.debug(f"Sending message: {first_message}")
     outgoing_message = {"phone": phone, "text": first_message}
 
     return outgoing_message
@@ -289,6 +280,7 @@ def handle_message(message: dict) -> str:
     logger.debug(f"Handling message: {message}")
     phone = message.get("phone")
     # determine which function to call based on message text
+    # TODO Switch to determining a message type [first, opt-in-missing, recent-reply, later-reply, opt-out]
     is_first_message = determine_is_first_message(phone)
 
     if is_first_message:
@@ -298,6 +290,7 @@ def handle_message(message: dict) -> str:
     text = message.get("text")
 
     # handle the reset message
+    # TODO -- change this to the opt-out keywords defined in the Twilio Console
     if text.lower() == "reset":
         # delete the file for this phone number
         return handle_reset(message)
