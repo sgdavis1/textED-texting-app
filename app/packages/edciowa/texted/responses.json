@@ -1,35 +1,35 @@
 {
     "First steps": {
-        "aliases": ["start","Start","START"],
+        "aliases": ["start","Start","START","begin","symptoms","support","how do I know"],
         "text":"First steps for what to do if you (or a loved one) think you have an eating disorder\n\nhttps://www.edciowa.com/_files/ugd/93ebaa_56f91966ee0444d580c99791f8f7c750.pdf",
         "image_url":"https://www.edciowa.com/_files/ugd/93ebaa_56f91966ee0444d580c99791f8f7c750.pdf"
     },
     "Recovery": {
         "text": "Helpful topics as you start recovery\n\nhttps://www.edciowa.com/_files/ugd/93ebaa_9ce20ca5cf1b46ef94355eec1e6d10a3.pdf",
-        "aliases": ["Help myself", "help me","help self","restriction", "binging", "purging"],
+        "aliases": ["Help myself", "help me","help self","restriction", "binging", "purging", "recovery", "intuitive eating", "body image", "body neutrality"],
         "ignore": ["How to help", "Help my loved one", "Help my child", "Help my friend", "Help my family member","Help my daughter","Help my son"],
         "image_url": "https://www.edciowa.com/_files/ugd/93ebaa_9ce20ca5cf1b46ef94355eec1e6d10a3.pdf"
     },
     "Diet Culture": {
         "text":"Diet culture and what to know\n\nhttps://www.edciowa.com/_files/ugd/93ebaa_51efcb3199cb45a28ce5f7670e2c6a41.pdf",
-        "aliases":["dieting", "diet help","calories", "fat"],
+        "aliases":["dieting", "diet help","calories", "fat", "disordered eating", "diet culture", "thin ideal"],
         "image_url":"https://www.edciowa.com/_files/ugd/93ebaa_51efcb3199cb45a28ce5f7670e2c6a41.pdf"
     },
     "Caregiver": {
-        "aliases": ["How to help", "Help my loved one", "Help my child", "Help my friend", "Help my family member","Help my daughter","Help my son","Help my spouse","Help my partner", "Help my sister","help my brother","Help my mom","Help my dad","Help my parent","Help my aunt","Help my uncle","Help my wife","Help my husband","Help my girlfriend","Help my boyfriend","help my sister"],
+        "aliases": ["How to help", "Help my loved one", "Help my child", "Help my friend", "Help my family member","Help my daughter","Help my son","Help my spouse","Help my partner", "Help my sister","help my brother","Help my mom","Help my dad","Help my parent","Help my aunt","Help my uncle","Help my wife","Help my husband","Help my girlfriend","Help my boyfriend","help my sister", "meal support"],
         "ignore": ["Help myself", "help me","help self"],
         "text": "Introduction to resources for caregivers\n\nhttps://www.edciowa.com/_files/ugd/93ebaa_1d38d439238d46f89317e445303c46da.pdf",
         "image_url": "https://www.edciowa.com/_files/ugd/93ebaa_1d38d439238d46f89317e445303c46da.pdf"
     },
     "Provider": {
-        "aliases": ["doctor","help my patient"],
+        "aliases": ["doctor","help my patient", "diagnoses", "diagnosis", "level of care", "care", "resources", "training"],
         "text": "Introduction for resources for providers\n\nhttps://www.edciowa.com/_files/ugd/93ebaa_e14006c08c2f4268be2bcdae23c13728.pdf",
         "image_url": "https://www.edciowa.com/_files/ugd/93ebaa_e14006c08c2f4268be2bcdae23c13728.pdf"
     },
 
     "Medical Guide": {
         "text": "Medical Quick Guide for healthcare providers\n\nhttps://www.edciowa.com/_files/ugd/93ebaa_9eb6c084e4b24b929fa0587d405542d1.pdf",
-        "aliases": ["medical","medical quick guide"],
+        "aliases": ["medical","medical quick guide", "reference", "diagnosing", "labs", "behaviors", "refeeding"],
         "image_url": "https://www.edciowa.com/_files/ugd/93ebaa_9eb6c084e4b24b929fa0587d405542d1.pdf"
     },
     "Weight Neutral Card": {
@@ -38,11 +38,23 @@
         "image_url":"https://www.edciowa.com/_files/ugd/93ebaa_2d33bb227e1647babc56659c5fc9105a.pdf"
     },
     "Treatment": {
+        "aliases": ["specialists, providers" ],
         "text": "Treatment\n\nhttps://www.edciowa.com/provider-listings",
         "image_url": "https://www.edciowa.com/provider-listings"
     },
-    "Greeting":{
-        "aliases":["hello","hi","good morning","good afternoon","hey"],
-        "text":"Hello! I'm here to help you find resources for eating disorders. I can help you find resources for yourself, a loved one, or a patient. Send the keyword Get Started"
+    "Support Line": {
+        "aliases": ["crisis", "help", "suicide", "kill", "death", "emergency", "cutting", "homicide", "overwhelmed", "cut", "dying", "911", "harm to self", "unsafe", "safe", "scared", "afraid"],
+        "text": "Please seek the help of a professional immediately, and consider calling 911 if you are concerned about harming yourself or others.",
+        "image_url": ""
+    },
+
+    "Greeting1":{
+        "text": "Hello! I'm here to help provide resources for those affected by eating disorders. But first, you must opt-in to this service by texting me the keyword ‘START’. To stop at any time, text me the keyword ‘STOP’. Messaging and data rates may apply."
+    },
+    "Greeting2": {
+        "text": "Before we can get started, I need you to opt-in to our service. Please respond with ‘START’ if you’d like to continue"
+    },
+    "Greeting3": {
+        "text": "Thank you for reaching out for support. I will try to help you find resources for yourself, a loved one, or a patient.\n\nWhat can I help connect you with today?"
     }
 }
