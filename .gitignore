@@ -4,6 +4,7 @@ venv/
 
 users.json
 .deployed/
+__deployer__.zip
 
 # IntelliJ user specific workspace
 .idea/workspace.xml
