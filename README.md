@@ -166,7 +166,8 @@ Example:
 
 Currently, production credentials are associated with the following accounts:
 
-| Service | email | 2FA |
-| --- | --- | --- |
-| Twilio | treasurer@edciowa.org | Yes (TOTP) |
-| Digital Ocean | sgdavis1@gmail.com | OAuth via Github |
+| Service       | email                 | 2FA |
+|---------------|-----------------------| --- |
+| Twilio        | treasurer@edciowa.org | Yes (TOTP) |
+| Digital Ocean | sgdavis1@gmail.com    | OAuth via Github |
+| Sentry        | sgdavis@bioneos.com   | OAuth via Github |

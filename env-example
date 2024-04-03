@@ -5,11 +5,12 @@ TWILIO_ACCOUNT_PHONE_NUMBER=
 
 # Sentry SDK Setup
 #   NOTE: Located in tne console at "Settings > Org > project > Client Keys"
-# Sentry Event level indicates the lowest level that will create an "event" with
-#   breadcrumbs automatically generated for any logs up to DEBUG base on the same
-#   execution of the application
+# Sentry Event level [critical, error, warning, info, debug] (optional)
+#   Indicates the lowest level that will create an "event" with breadcrumbs
+#   automatically generated for any logs up to DEBUG base on the same execution
+#   of the application. Defaults to "warning".
 SENTRY_DSN=
-SENTRY_EVENT_LEVEL=
+#SENTRY_EVENT_LEVEL=warning
 
 # Digital Ocean Spaces access keys (All required)
 DO_SPACES_KEY=
@@ -17,4 +18,5 @@ DO_SPACES_SECRET=
 DO_BUCKET_NAME=
 
 # Logging level [critical, error, warning, info, debug] (optional)
+#   Defaults to debug logging on stdout.
 #LOGGING_LEVEL=debug

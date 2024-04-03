@@ -21,14 +21,18 @@ from pprint import pprint
 load_dotenv()
 
 
-# Sentry setup
+# Sentry setup from config: [critical, error, warning, info, debug]
 sentry_event_level = logging.WARNING
-if os.getenv('SENTRY_EVENT_LEVEL') == 'INFO':
+if os.getenv('SENTRY_EVENT_LEVEL') == 'debug':
+    sentry_event_level = logging.DEBUG
+elif os.getenv('SENTRY_EVENT_LEVEL') == 'info':
     sentry_event_level = logging.INFO
-elif os.getenv('SENTRY_EVENT_LEVEL') == 'WARNING':
+elif os.getenv('SENTRY_EVENT_LEVEL') == 'warning':
     sentry_event_level = logging.WARNING
-elif os.getenv('SENTRY_EVENT_LEVEL') == 'ERROR':
+elif os.getenv('SENTRY_EVENT_LEVEL') == 'error':
     sentry_event_level = logging.ERROR
+elif os.getenv('SENTRY_EVENT_LEVEL') == 'critical':
+    sentry_event_level = logging.CRITICAL
 sentry_sdk.init(
     dsn=os.getenv('SENTRY_DSN', ''),
     integrations=[
