@@ -191,8 +191,11 @@ def keyword_ranker(text: str, responses: dict) -> dict:
 
     # loop through the keywords and rank them
     for base_key in base_keyword_list:
-        # add the aliases to the list of keys to check
-        keys_to_check = responses.get(base_key, {}).get("aliases", [])
+        # Add the aliases to the list of keys to check
+        # Skip any categories that don't define aliases (workflow / system messages)
+        keys_to_check = responses.get(base_key, {}).get("aliases")
+        if keys_to_check is None:
+            continue
         og_key = base_key
         base_key = base_key.lower()
         keys_to_check.append(base_key)
@@ -204,7 +207,9 @@ def keyword_ranker(text: str, responses: dict) -> dict:
             keyword_and_score[key] = score
             if score > best_match.get("score", 0):
                 best_match = {"score": score, "key": og_key}
+            logger.debug(f"{og_key}[{key}]: {score}")
 
+        # TODO not sure this logic is correct...
         ignore = responses.get(base_key, {}).get("ignore", [])
         if key in ignore:
             best_match = {"score": 0, "key": og_key}
