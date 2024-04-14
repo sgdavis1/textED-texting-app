@@ -15,7 +15,7 @@ set +o allexport
 
 echo
 echo "Deploying the app..."
-doctl serverless deploy app/
+doctl serverless deploy app/ --remote-build --verbose-build
 echo "Done!"
 echo
 echo
