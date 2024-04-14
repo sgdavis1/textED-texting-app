@@ -14,6 +14,6 @@ packages:
   - name: edciowa
     functions:
       - name: texted
-        runtime: 'python:default'
+        runtime: 'python:3.11'
         limits:
           memory: 384
