@@ -1,22 +1,34 @@
-import datetime
 import json
 import logging
 import os
 import sentry_sdk
 import sys
-from sentry_sdk.integrations.logging import LoggingIntegration
-from urllib.parse import urlparse
 
 from boto3 import session
 from botocore.exceptions import ClientError
+from datetime import datetime
 from dotenv import load_dotenv
+from enum import Enum
 from rapidfuzz.fuzz import partial_ratio
+from sentry_sdk.integrations.logging import LoggingIntegration
 from twilio.rest import Client
+from urllib.parse import urlparse
 
 # Helpful modules for development
 import inspect
 from pprint import pprint
 
+
+class MessageType(Enum):
+    FIRST = 0
+    OPT_IN_MISSING = 1
+    RECENT_REPLY = 2
+    LATER_REPLY = 3
+
+
+# Consistent format for reading / writing datetime strings
+DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
+RECENT_LIMIT_MINUTES = 30
 # Configure all ENV settings
 load_dotenv()
 
@@ -116,15 +128,34 @@ def does_file_exist(filename):
 
 
 def get_file_contents(filename):
+    """
+    Get the contents of a file from our bucket. The presence of that file indicates that the
+    phone number has been seen by this system. The contents of the file indicate the timestamp of
+    the last message received AFTER an opt-in. Before the opt-in has occurred, the file will be
+    present but empty. If an opt-out occurs, the file contents are cleared to indicate this.
+
+    :param filename: The filename to read, expected as `phone_number.txt`
+    :return: None, if the file does not exist. Else, the contents of the file (should be a
+        timestamp or an empty string)
+    """
     try:
-        # TODO
-        response = create_spaces_client().get_object(Bucket=os.getenv("DO_BUCKET_NAME"), Key=filename)
-        return response["Body"].read().decode("utf-8")
-    except:  # noqa
+        query = create_spaces_client().get_object(Bucket=os.getenv("DO_BUCKET_NAME"), Key=filename)
+        return query["Body"].read().decode("utf-8")
+    except CredentialsError as ex:
+        logger.warning("Credentials problem with Digital Ocean Spaces")
+        raise
+    except ClientError as ex:
+        if ex.response['Error']['Code'] == 'NoSuchKey':
+            logger.debug(f"Could not find {filename}")
+        elif ex.response['Error']['Code'] == 'NoSuchBucket':
+            logger.error(f"Bucket not found {os.getenv('DO_BUCKET_NAME')}")
+            raise
+        else:
+            raise
         return None
 
 
-def create_new_file(filename, content=""):
+def write_to_file(filename, content=""):
     try:
         # TODO
         create_spaces_client().put_object(Bucket=os.getenv("DO_BUCKET_NAME"), Key=filename, Body=content)
@@ -148,6 +179,7 @@ def send_message(message: dict) -> None:
     phone = message.get("phone")
     text = message["text"]
     stage = os.environ.get("STAGE", "dev")
+    responses = get_responses()
 
     # Only send messages in production mode
     if stage == "prod":
@@ -165,6 +197,16 @@ def send_message(message: dict) -> None:
             )
         sid = tw_message.sid
         logger.info(f"Message sent: {sid}")
+
+        # If this was the opt-in send a second reply with more welcoming instructions
+        if text == responses["Greeting3"]["text"]:
+            message = responses["Greeting4"]["text"]
+            tw_message = twilio_client.messages.create(
+                body=message, from_=os.environ["TWILIO_ACCOUNT_PHONE_NUMBER"], to=phone
+            )
+            sid = tw_message.sid
+            logger.debug(f"Sending follow-up message: {message}")
+            logger.info(f"Follow-up Message sent: {sid}")
     else:
         logger.info(f"Not calling Twilio API for response when in {stage}")
 
@@ -224,6 +266,38 @@ def get_responses():
     return brain
 
 
+def determine_message_type(phone: str) -> MessageType:
+    """
+    Determine what type of message this is from this number.  We have several message
+    types defined as an Enum at the top of the code.
+
+    * FIRST: The first time a number has ever communicated with the TextED line.
+    * OPT_IN_MISSING: A subsequent message from a number that doesn't have a recorded
+        opt-in for our system. This could also be a message from a number that has
+        previously opted out.
+    * RECENT_REPLY: A message that has been sent within RECENT_LIMIT_MINUTES of the last message.
+    * LATER_REPLY: A message that comes more than RECENT_LIMIT_MINUTES after the previous message.
+
+    returns: True if this is the first message from this phone number
+    """
+    # TODO check if the phone number is in the S3 bucket & get file contents
+    filename = f"{phone}.txt"
+    datetime_str = get_file_contents(filename)
+
+    if datetime_str is None:
+        return MessageType.FIRST
+    elif datetime_str == "":
+        return MessageType.OPT_IN_MISSING
+    else:
+        now = datetime.now()
+        previous = datetime.strptime(datetime_str, DATETIME_FORMAT)
+        min_diff = (now - previous).total_seconds() / 60.0
+
+        if min_diff <= RECENT_LIMIT_MINUTES:
+            return MessageType.RECENT_REPLY
+        return MessageType.LATER_REPLY
+
+
 def determine_is_first_message(phone: str) -> bool:
     """Determine if this is the first message from this phone number
     phone: the phone number to check
@@ -244,11 +318,9 @@ def mark_number_as_sent(phone: str) -> bool:
 
     returns: True if the phone number was marked
     """
-    # check if the phone number is in the database
-    # remove the +1 from the phone number
-    phone = phone[1:]
+    # check if the phone number is in the bucket
     filename = f"{phone}.txt"
-    return create_new_file(filename)
+    return write_to_file(filename)
 
 
 def handle_first_message(message: dict) -> dict:
@@ -257,7 +329,7 @@ def handle_first_message(message: dict) -> dict:
     mark_number_as_sent(phone)
 
     # send the welcome message
-    first_message = get_responses()["Greeting1"]
+    first_message = get_responses()["Greeting1"]["text"]
 
     logger.debug(f"Sending message: {first_message}")
     outgoing_message = {"phone": phone, "text": first_message}
@@ -265,10 +337,21 @@ def handle_first_message(message: dict) -> dict:
     return outgoing_message
 
 
+def handle_missing_opt_in(message: dict) -> dict:
+    phone = message.get("phone")
+    text = message.get("text")
+    # Check if this is an opt-in
+    if text.lower() == "start":
+        write_to_file(f"{phone}.txt", datetime.now().strftime(DATETIME_FORMAT))
+        return {"phone": phone, "text": get_responses()["Greeting3"]["text"]}
+    else:
+        # ask for an opt-in again
+        return {"phone": phone, "text": get_responses()["Greeting2"]["text"]}
+
+
 def handle_reset(message: dict) -> dict:
     # figure the filename
     phone = message.get("phone")
-    phone = phone[1:]
     filename = f"{phone}.txt"
     delete_file(filename)
 
@@ -278,19 +361,22 @@ def handle_reset(message: dict) -> dict:
     return outgoing_message
 
 
-def handle_message(message: dict) -> str:
+def handle_message(message: dict) -> dict:
     # TODO: Create a Spaces client once -- pass down to function
 
     # Identify the phone number to text back
     logger.debug(f"Handling message: {message}")
     phone = message.get("phone")
-    # determine which function to call based on message text
-    # TODO Switch to determining a message type [first, opt-in-missing, recent-reply, later-reply, opt-out]
-    is_first_message = determine_is_first_message(phone)
+    # determine the MessageType to determine how to handle the message
+    message_type = determine_message_type(phone)
+    logger.debug(f"Message Type: {message_type}")
 
-    if is_first_message:
+    if message_type == MessageType.FIRST:
         logger.info(f"This is our first message from: {phone}")
         return handle_first_message(message)
+    elif message_type == MessageType.OPT_IN_MISSING:
+        logger.info(f"Subsequent message from {phone} but no opt-in on record")
+        return handle_missing_opt_in(message)
 
     text = message.get("text")
 
