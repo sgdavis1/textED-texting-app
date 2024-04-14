@@ -16,4 +16,4 @@ packages:
       - name: texted
         runtime: 'python:3.11'
         limits:
-          memory: 384
+          memory: 512
