@@ -16,7 +16,7 @@
         "image_url":"https://www.edciowa.com/_files/ugd/93ebaa_51efcb3199cb45a28ce5f7670e2c6a41.pdf"
     },
     "Caregiver": {
-        "aliases": ["How to help", "Help my loved one", "Help my child", "Help my friend", "Help my family member","Help my daughter","Help my son","Help my spouse","Help my partner", "Help my sister","help my brother","Help my mom","Help my dad","Help my parent","Help my aunt","Help my uncle","Help my wife","Help my husband","Help my girlfriend","Help my boyfriend","help my sister", "meal support"],
+        "aliases": ["How to help", "Help my loved one", "Help my child", "Help my friend", "Help my family member","Help my daughter","Help my son","Help my spouse","Help my partner", "Help my sister","help my brother","Help my mom","Help my dad","Help my parent","Help my aunt","Help my uncle","Help my wife","Help my husband","Help my girlfriend","Help my boyfriend","help my sister", "meal support", "my child isn't eating"],
         "ignore": ["Help myself", "help me","help self"],
         "text": "Introduction to resources for caregivers\n\nhttps://www.edciowa.com/_files/ugd/93ebaa_1d38d439238d46f89317e445303c46da.pdf",
         "image_url": "https://www.edciowa.com/_files/ugd/93ebaa_1d38d439238d46f89317e445303c46da.pdf"
@@ -38,7 +38,7 @@
         "image_url":"https://www.edciowa.com/_files/ugd/93ebaa_2d33bb227e1647babc56659c5fc9105a.pdf"
     },
     "Treatment": {
-        "aliases": ["specialists, providers", "therapist" ],
+        "aliases": ["specialists, providers", "therapist", "find me a therapist", "find me a specialist" ],
         "text": "Treatment\n\nhttps://www.edciowa.com/provider-listings",
         "image_url": "https://www.edciowa.com/provider-listings"
     },
