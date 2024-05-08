@@ -1,5 +1,6 @@
 import json
 import logging
+import re
 import os
 import sentry_sdk
 import sys
@@ -225,11 +226,10 @@ def keyword_ranker(text: str, responses: dict) -> dict:
     text = text.lower()
     best_match = {}
     base_keyword_list = list(responses.keys())
-    base_key = None
     keyword_and_score = {}
-    keys_to_ignore = []  # keys to ignore if they are in the text
 
-    base_keyword_list = [key for key in base_keyword_list if key not in keys_to_ignore]
+    base_keyword_list = [key for key in base_keyword_list if re.search(r"Greeting\d+", key) is None]
+    logger.debug(f"Base list: {base_keyword_list}")
 
     # loop through the keywords and rank them
     for base_key in base_keyword_list:
@@ -391,16 +391,16 @@ def handle_message(message: dict) -> dict:
 
     responses = get_responses()
     # ignore the greeting
-    responses = {key: value for key, value in responses.items() if key != "Greeting"}
+    responses = {key: value for key, value in responses.items() if re.search(r"Greeting\d+", key) is None}
     help_text = "".join(
-        [f"\n{key} -  {item['text']}" for key, item in responses.items()]
+        [f"\n{key}" for key, item in responses.items()]
     )
     # first, check if the user is asking for help
     # TODO: Something with Twilio intercepts the help message and sends a stop message to the user.
     # Check the configuration for this number.
-    if text.lower() == "help":
+    if text.lower() == "help" or text.lower() == "keywords":
         outgoing_message["text"] = (
-                "The following keywords can be used to find resources: " + help_text
+            "The following keywords can be used to find resources:\n\n" + help_text
         )
         return outgoing_message
 
