@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EDC Iowa SMS Opt-In</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap">
+  <style>
+    body, body input {
+      font-family: 'Montserrat', sans-serif;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 600px;
+      margin: 50px auto;
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+    h1 {
+      color: #333;
+    }
+    p {
+      color: #666;
+    }
+    input[type="tel"] {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      box-sizing: border-box;
+    }
+    input[type="checkbox"] {
+      margin-bottom: 10px;
+    }
+    input[type="submit"] {
+      background-color: #8ac8bb;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 1px;
+      cursor: pointer;
+      font-size: 16px;
+      margin: 15px 0;
+    }
+    input[type="submit"]:hover {
+      background-color: #4b6e65;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Access the TextED service</h1>
+    <!-- Obviously, the form action needs to be replaced with your Digital Ocean Function url -->
+    <form action="https://faas-nyc1-2ef2e6cc.doserverless.co/api/v1/web/fn-fe35205e-d596-4148-8884-c56f078b2d6a/edciowa/texted" method="post">
+      <p>Enter your phone number below to opt-in to receive SMS messages from EDCI's TextED service:</p>
+      <label for="phone">Enter your phone number:</label>
+      <input type="hidden" name="notsosecret" value="texted-optin-webform" />
+      <input type="tel" name="phone" placeholder="XXX-XXX-XXXX" pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}" required>
+      <div>
+        <input type="checkbox" name="agree" id="agree" required>
+        <label for="agree">I understand that messaging and data rates may apply.</label>
+      </div>
+      <input type="submit" value="Subscribe">
+    </form>
+  </div>
+</body>
+</html>
