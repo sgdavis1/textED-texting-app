@@ -329,6 +329,7 @@ def handle_first_message(message: dict) -> dict:
     mark_number_as_sent(phone)
 
     # send the welcome message
+    # FIXME: What if they opted in on message 1?
     first_message = get_responses()["Greeting1"]["text"]
 
     logger.debug(f"Sending message: {first_message}")
@@ -341,6 +342,7 @@ def handle_missing_opt_in(message: dict) -> dict:
     phone = message.get("phone")
     text = message.get("text")
     # Check if this is an opt-in
+    # FIXME: multiple opt-in keyword support
     if text.lower() == "start":
         write_to_file(f"{phone}.txt", datetime.now().strftime(DATETIME_FORMAT))
         return {"phone": phone, "text": get_responses()["Greeting3"]["text"]}
@@ -478,12 +480,17 @@ def main(event):
     See official documentation here: https://docs.digitalocean.com/products/functions/reference/runtimes/python/
     """
     from_phone = event.get("From")
+    optin_phone = event.get("phone")
     message = event.get("Body")
+
 
     # Error handling (need a phone, message can be empty -- not None)
     # TODO: use a best practice phone number regex here
     message = "" if message is None else message
-    if from_phone is None:
+    if event.get("notsosecret") == 'texted-optin-webform':
+        # Handle an opt-in through the website form
+        logger.info(f"Received a website opt-in request from phone: {optin_phone}")
+    elif from_phone is None:
         logger.warning(f"Cannot process incoming events without a 'From' phone: {from_phone}")
         return {"statusCode": 400, "body": "Cannot process incoming events without a 'From' phone"}
 
