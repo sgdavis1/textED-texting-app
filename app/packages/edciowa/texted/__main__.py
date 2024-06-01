@@ -27,6 +27,10 @@ class MessageType(Enum):
     LATER_REPLY = 3
 
 
+# Match Threshold (to determine messages that cannot be handled)
+MATCH_MISSING_THRESHOLD = 60
+MATCH_UNCERTAIN_THRESHOLD = 75
+
 # Consistent format for reading / writing datetime strings
 DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
 RECENT_LIMIT_MINUTES = 30
@@ -392,35 +396,41 @@ def handle_message(message: dict) -> dict:
     outgoing_message = {"phone": phone, "text": None}
 
     responses = get_responses()
-    # ignore the greeting
+    # Set up the help message (all response headers minus the greetings)
     responses = {key: value for key, value in responses.items() if re.search(r"Greeting\d+", key) is None}
     help_text = "".join(
         [f"\n{key}" for key, item in responses.items()]
     )
-    # first, check if the user is asking for help
-    # TODO: Something with Twilio intercepts the help message and sends a stop message to the user.
-    # Check the configuration for this number.
+
+    # Check if the user is asking for help
     if text.lower() == "help" or text.lower() == "keywords":
         outgoing_message["text"] = (
             "The following keywords can be used to find resources:\n\n" + help_text
         )
         return outgoing_message
 
+    # Rank the message against our keywords with the fuzzy matching logic
+    # NOTE: This could be improved, and we know it. First edition of textED
+    #   will be released with this logic, but we might move to a decision tree
+    #   or even more natural language support using ChatGPT APIs (if funded)
     ranked_keyword = keyword_ranker(text, responses)
     logger.debug(f"ranked keyword: {ranked_keyword}")
-    # if the score is less than .5, then the keyword is not recognized
-    if ranked_keyword.get("score", 0) <= 0.5:
-        keyword_help_text = f"Not recognized. Try using one of the following: {help_text}"
+    if ranked_keyword.get("score", 0) < MATCH_MISSING_THRESHOLD:
+        # If the score is less than our MATCH_MISSING_THRESHOLD, no good matches exists
+        keyword_help_text = (f"I'm not sure what you are asking about.\n\n" +
+                             f"Try asking about one of the following topics: {help_text}")
         outgoing_message["text"] = keyword_help_text
     else:
+        # We found a match above threshold
         matched_keyword = ranked_keyword.get("key")
 
         response = responses[matched_keyword]
         text_response = response.get("text")
         image_response = response.get("image_url")
 
-        if ranked_keyword.get("score") < 70:
-            text_response += '\nNot what you\'re looking for? Text "keywords" for help.'
+        # If the score is less than our MATCH_UNCERTAIN_THRESHOLD, give them extra help
+        if ranked_keyword.get("score") < MATCH_UNCERTAIN_THRESHOLD:
+            text_response += "\n\n\nNot what you were looking for? Text \"keywords\" or \"help\" for options."
 
         if text_response:
             outgoing_message["text"] = text_response
