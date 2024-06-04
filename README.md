@@ -171,3 +171,4 @@ Currently, production credentials are associated with the following accounts:
 | Twilio        | treasurer@edciowa.org | Yes (TOTP) |
 | Digital Ocean | sgdavis1@gmail.com    | OAuth via Github |
 | Sentry        | sgdavis@bioneos.com   | OAuth via Github |
+| Short.io      | sgdavis@bioneos.com   | OAuth via Google |

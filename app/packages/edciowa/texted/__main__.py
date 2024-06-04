@@ -36,6 +36,10 @@ MATCH_UNCERTAIN_THRESHOLD = 75
 DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
 RECENT_LIMIT_MINUTES = 30
 
+# Defaults for optional .env values
+DEFAULT_SECRET = 'texted-optin-webform'
+DEFAULT_REDIRECT_URL = 'https://edciowa.com/'
+
 # Configure all ENV settings
 load_dotenv()
 
@@ -470,7 +474,7 @@ def main(event):
     # Error handling (need a phone, message can be empty -- not None)
     # TODO: use a best practice phone number regex here
     message = "" if message is None else message
-    if event.get("notsosecret") == 'texted-optin-webform':
+    if event.get("notsosecret") == os.getenv('WEBFORM_SECRET', DEFAULT_SECRET):
         # Handle an opt-in through the website form
         logger.info(f"Received a website opt-in request from phone: {optin_phone}")
     elif from_phone is None:
@@ -486,14 +490,21 @@ def main(event):
         if optin_phone is not None:
             reply_msg = optin(s3client, optin_phone)
             # TODO: Check for a previous opt-in, simply send help keywords back
+            send_message(reply_msg)
+
+            return {
+                "statusCode": 302,
+                "body": f"Please visit {os.getenv('WEBFORM_REDIRECT_URL', DEFAULT_REDIRECT_URL)} " +
+                        "if you are not automatically redirected...",
+                "headers": {"location": os.getenv('WEBFORM_REDIRECT_URL', DEFAULT_REDIRECT_URL)}
+            }
         else:
             reply_msg = handle_message(s3client, incoming_message)
-        send_message(reply_msg)
+            send_message(reply_msg)
+            return {"statusCode": 200, "body": "Successful execution"}
     except Exception as e:
         logger.error(f"Internal server error: {e.__str__()}")
         return {"statusCode": 500, "body": e.__str__()}
-
-    return {"statusCode": 200, "body": "Successful execution"}
 
 
 def simulate():
@@ -516,17 +527,17 @@ def simulate():
 
     # Proper CLI arguments, continue simulation
     if args.webform:
-        msg = {
+        event = {
             "phone": args.phone,
-            "notsosecret": "texted-optin-webform"
+            "notsosecret": os.getenv('WEBFORM_SECRET', DEFAULT_SECRET)
         }
     else:
-        msg = {
+        event = {
             "From": args.phone,
             "Body": args.message
         }
 
-    main(msg)
+    main(event)
 
 
 """Command line execution"""

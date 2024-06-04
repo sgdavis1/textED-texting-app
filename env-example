@@ -17,6 +17,10 @@ DO_SPACES_KEY=
 DO_SPACES_SECRET=
 DO_BUCKET_NAME=
 
+# Webform (for automatic opt-in) settings (All optional):
+#WEBFORM_SECRET=texted-optin-webform
+#WEBFORM_REDIRECT_URL=https://edciowa.com/
+
 # Logging level [critical, error, warning, info, debug] (optional)
 #   Defaults to debug logging on stdout.
 #LOGGING_LEVEL=debug
