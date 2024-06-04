@@ -360,7 +360,7 @@ def handle_message(s3client, message: dict) -> dict:
 
     # handle the reset message
     # TODO -- change this to the opt-out keywords defined in the Twilio Console
-    if text.lower() == "reset":
+    if text.lower() == "reset" or text.lower() == "stop":
         # delete the file for this phone number
         return handle_reset(s3client, message)
 
