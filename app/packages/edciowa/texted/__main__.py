@@ -17,8 +17,8 @@ from twilio.rest import Client
 from urllib.parse import urlparse
 
 # Helpful modules for development
-import inspect
-from pprint import pprint
+# import inspect
+# from pprint import pprint
 
 
 class MessageType(Enum):
@@ -35,6 +35,7 @@ MATCH_UNCERTAIN_THRESHOLD = 75
 # Consistent format for reading / writing datetime strings
 DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
 RECENT_LIMIT_MINUTES = 30
+
 # Configure all ENV settings
 load_dotenv()
 
@@ -117,7 +118,7 @@ def does_file_exist(filename):
         create_spaces_client().get_object(Bucket=os.getenv("DO_BUCKET_NAME"), Key=filename)
         return True
     except CredentialsError as ex:
-        logger.warning("Credentials problem with Digital Ocean Spaces")
+        logger.warning(f"Credentials problem with Digital Ocean Spaces: {ex}")
         return False
     except ClientError as ex:
         if ex.response['Error']['Code'] == 'NoSuchKey':
@@ -145,7 +146,7 @@ def get_file_contents(filename):
         query = create_spaces_client().get_object(Bucket=os.getenv("DO_BUCKET_NAME"), Key=filename)
         return query["Body"].read().decode("utf-8")
     except CredentialsError as ex:
-        logger.warning("Credentials problem with Digital Ocean Spaces")
+        logger.warning(f"Credentials problem with Digital Ocean Spaces: {ex}")
         raise
     except ClientError as ex:
         if ex.response['Error']['Code'] == 'NoSuchKey':
@@ -253,10 +254,10 @@ def keyword_ranker(text: str, responses: dict) -> dict:
                 best_match = {"score": score, "key": og_key}
             logger.debug(f"{og_key}[{key}]: {score}")
 
-        # TODO not sure this logic is correct...
-        ignore = responses.get(base_key, {}).get("ignore", [])
-        if key in ignore:
-            best_match = {"score": 0, "key": og_key}
+            # TODO not sure this logic is correct...
+            ignore = responses.get(base_key, {}).get("ignore", [])
+            if key in ignore:
+                best_match = {"score": 0, "key": og_key}
 
     return best_match
 
@@ -357,7 +358,7 @@ def optin(phone: str) -> dict:
     """
     logger.debug(f"Creating opt-in for: {phone}, and sending back second greeting")
     # Format the phone correctly (add +1 prefix and remove all dashes)
-    phone = "+1" + phone.replace("-","")
+    phone = "+1" + phone.replace("-", "")
     mark_number_as_sent(phone)
     write_to_file(f"{phone}.txt", datetime.now().strftime(DATETIME_FORMAT))
 
@@ -462,13 +463,12 @@ def validate_responses_file():
                     if not isinstance(alias, str):
                         errors.append(f"Invalid alias for key: {key}, Alias: {alias}")
         if value.get("image_url"):
-            scheme = None
             try:
                 scheme = urlparse(value.get("image_url")).scheme
 
                 if scheme not in ["http", "https"]:
                     errors.append(f"Invalid image_url for key: {key}")
-            except Exception:
+            except Exception:  # noqa
                 errors.append(f"Invalid image_url for key: {key}")
 
     if len(errors) > 0:
@@ -518,9 +518,6 @@ def main(event):
     return {"statusCode": 200, "body": "Successful execution"}
 
 
-
-
-
 def simulate():
     parser = argparse.ArgumentParser(description="Execute a simulated call to the textED system")
     parser.add_argument("-w", "--webform", action="store_true")
@@ -537,7 +534,6 @@ def simulate():
         sys.exit(-2)
 
     # Proper CLI arguments, continue simulation
-    msg = {}
     if args.webform:
         msg = {
             "phone": args.phone,
@@ -548,10 +544,10 @@ def simulate():
             "From": args.phone,
             "Body": args.message
         }
+
     main(msg)
 
 
 """Command line execution"""
 if __name__ == "__main__":
     simulate()
-
