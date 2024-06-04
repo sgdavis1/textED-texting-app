@@ -1,3 +1,4 @@
+import argparse
 import json
 import logging
 import re
@@ -84,9 +85,6 @@ logger.info(f"Logging level set to {level}")
 account_sid = os.environ["TWILIO_ACCOUNT_SID"]
 auth_token = os.environ["TWILIO_AUTH_TOKEN"]
 twilio_client = Client(account_sid, auth_token)
-
-# TODO: Add this to development .env
-ADMIN_PHONE_NUMBERS = ["+13196215249"]  # Steve's phone number
 
 
 class CredentialsError(Exception):
@@ -493,7 +491,6 @@ def main(event):
     optin_phone = event.get("phone")
     message = event.get("Body")
 
-
     # Error handling (need a phone, message can be empty -- not None)
     # TODO: use a best practice phone number regex here
     message = "" if message is None else message
@@ -519,12 +516,40 @@ def main(event):
     return {"statusCode": 200, "body": "Successful execution"}
 
 
+
+
+
+def simulate():
+    parser = argparse.ArgumentParser(description="Execute a simulated call to the textED system")
+    parser.add_argument("-w", "--webform", action="store_true")
+    parser.add_argument("-m", "--message", nargs="?", default=None)
+    parser.add_argument("-p", "--phone", nargs="?")
+    args = parser.parse_args()
+    print(f"{args} HERE")
+
+    if args.phone is None:
+        print("\n\nA 'phone' is required for command line execution...\n")
+        sys.exit(-1)
+    elif args.webform and (args.message is not None):
+        print("\n\nYou cannot set a text message body for the webform opt-in execution...\n")
+        sys.exit(-2)
+
+    # Proper CLI arguments, continue simulation
+    msg = {}
+    if args.webform:
+        msg = {
+            "From": args.phone,
+            "notsosecret": "texted-optin-webform"
+        }
+    else:
+        msg = {
+            "From": args.phone,
+            "Body": args.message
+        }
+    main(msg)
+
+
 """Command line execution"""
 if __name__ == "__main__":
-    args = sys.argv
-    msg = {
-        "From": ADMIN_PHONE_NUMBERS[0],
-        "Body": args[1] if len(args) > 1 else "help",
-    }
+    simulate()
 
-    main(msg)
