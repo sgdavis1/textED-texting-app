@@ -109,41 +109,22 @@ def create_spaces_client():
     )
 
 
-# File operations in Digital Ocean Spaces
-# TODO: Handle error exceptions by notifying the user of an issue
-def does_file_exist(filename):
-    try:
-        # NOTE: Cannot use 'head_object' here, even though we don't care about the file contents
-        #   https://github.com/boto/boto3/issues/2442
-        create_spaces_client().get_object(Bucket=os.getenv("DO_BUCKET_NAME"), Key=filename)
-        return True
-    except CredentialsError as ex:
-        logger.warning(f"Credentials problem with Digital Ocean Spaces: {ex}")
-        return False
-    except ClientError as ex:
-        if ex.response['Error']['Code'] == 'NoSuchKey':
-            logger.debug(f"Could not find {filename}")
-        elif ex.response['Error']['Code'] == 'NoSuchBucket':
-            logger.error(f"Bucket not found {os.getenv('DO_BUCKET_NAME')}")
-            raise
-        else:
-            raise
-        return False
+# --- File operations in Digital Ocean Spaces --- #
 
-
-def get_file_contents(filename):
+def get_file_contents(s3client, filename):
     """
     Get the contents of a file from our bucket. The presence of that file indicates that the
     phone number has been seen by this system. The contents of the file indicate the timestamp of
     the last message received AFTER an opt-in. Before the opt-in has occurred, the file will be
     present but empty. If an opt-out occurs, the file contents are cleared to indicate this.
 
-    :param filename: The filename to read, expected as `phone_number.txt`
+    :param s3client: The boto3.S3.Client object connected to our function space.
+    :param filename: The filename to read, expected as `phone_number.txt`.
     :return: None, if the file does not exist. Else, the contents of the file (should be a
         timestamp or an empty string)
     """
     try:
-        query = create_spaces_client().get_object(Bucket=os.getenv("DO_BUCKET_NAME"), Key=filename)
+        query = s3client.get_object(Bucket=os.getenv("DO_BUCKET_NAME"), Key=filename)
         return query["Body"].read().decode("utf-8")
     except CredentialsError as ex:
         logger.warning(f"Credentials problem with Digital Ocean Spaces: {ex}")
@@ -159,18 +140,17 @@ def get_file_contents(filename):
         return None
 
 
-def write_to_file(filename, content=""):
+def write_to_file(s3client, filename: str, content : str = ""):
     try:
-        # TODO
-        create_spaces_client().put_object(Bucket=os.getenv("DO_BUCKET_NAME"), Key=filename, Body=content)
+        s3client.put_object(Bucket=os.getenv("DO_BUCKET_NAME"), Key=filename, Body=content)
         return True
     except:  # noqa
         return False
 
 
-def delete_file(filename):
+def delete_file(s3client, filename):
     try:
-        create_spaces_client().delete_object(Bucket=os.getenv("DO_BUCKET_NAME"), Key=filename)
+        s3client.delete_object(Bucket=os.getenv("DO_BUCKET_NAME"), Key=filename)
         return True
     except:  # noqa
         return False
@@ -215,9 +195,6 @@ def send_message(message: dict) -> None:
         logger.info(f"Not calling Twilio API for response when in {stage}")
 
     return
-
-
-# ====================================== main.py ================================
 
 
 def keyword_ranker(text: str, responses: dict) -> dict:
@@ -269,7 +246,7 @@ def get_responses():
     return brain
 
 
-def determine_message_type(phone: str) -> MessageType:
+def determine_message_type(s3client, phone: str) -> MessageType:
     """
     Determine what type of message this is from this number.  We have several message
     types defined as an Enum at the top of the code.
@@ -283,9 +260,8 @@ def determine_message_type(phone: str) -> MessageType:
 
     returns: True if this is the first message from this phone number
     """
-    # TODO check if the phone number is in the S3 bucket & get file contents
     filename = f"{phone}.txt"
-    datetime_str = get_file_contents(filename)
+    datetime_str = get_file_contents(s3client, filename)
 
     if datetime_str is None:
         return MessageType.FIRST
@@ -301,7 +277,7 @@ def determine_message_type(phone: str) -> MessageType:
         return MessageType.LATER_REPLY
 
 
-def mark_number_as_sent(phone: str) -> bool:
+def mark_number_as_sent(s3client, phone: str) -> bool:
     """Mark the phone number as having sent a message
     phone: the phone number to mark
 
@@ -309,13 +285,13 @@ def mark_number_as_sent(phone: str) -> bool:
     """
     # check if the phone number is in the bucket
     filename = f"{phone}.txt"
-    return write_to_file(filename)
+    return write_to_file(s3client, filename)
 
 
-def handle_first_message(message: dict) -> dict:
+def handle_first_message(s3client, message: dict) -> dict:
     # mark this phone number as having sent a message
     phone = message.get("phone")
-    mark_number_as_sent(phone)
+    mark_number_as_sent(s3client, phone)
 
     # send the welcome message
     # FIXME: What if they opted in on message 1?
@@ -327,24 +303,24 @@ def handle_first_message(message: dict) -> dict:
     return outgoing_message
 
 
-def handle_missing_opt_in(message: dict) -> dict:
+def handle_missing_opt_in(s3client, message: dict) -> dict:
     phone = message.get("phone")
     text = message.get("text")
     # Check if this is an opt-in
     # FIXME: multiple opt-in keyword support
     if text.lower() == "start":
-        write_to_file(f"{phone}.txt", datetime.now().strftime(DATETIME_FORMAT))
+        write_to_file(s3client, f"{phone}.txt", datetime.now().strftime(DATETIME_FORMAT))
         return {"phone": phone, "text": get_responses()["Greeting3"]["text"]}
     else:
         # ask for an opt-in again
         return {"phone": phone, "text": get_responses()["Greeting2"]["text"]}
 
 
-def handle_reset(message: dict) -> dict:
+def handle_reset(s3client, message: dict) -> dict:
     # figure the filename
     phone = message.get("phone")
     filename = f"{phone}.txt"
-    delete_file(filename)
+    delete_file(s3client, filename)
 
     # send the reset message
     outgoing_message = {"phone": message.get("phone"), "text": "Reset successful"}
@@ -352,35 +328,33 @@ def handle_reset(message: dict) -> dict:
     return outgoing_message
 
 
-def optin(phone: str) -> dict:
+def optin(s3client, phone: str) -> dict:
     """
     Handle an automatic opt-in request from the website form
     """
     logger.debug(f"Creating opt-in for: {phone}, and sending back second greeting")
     # Format the phone correctly (add +1 prefix and remove all dashes)
     phone = "+1" + phone.replace("-", "")
-    mark_number_as_sent(phone)
-    write_to_file(f"{phone}.txt", datetime.now().strftime(DATETIME_FORMAT))
+    mark_number_as_sent(s3client, phone)
+    write_to_file(s3client, f"{phone}.txt", datetime.now().strftime(DATETIME_FORMAT))
 
     return {"phone": phone, "text": get_responses()["Greeting3"]["text"]}
 
 
-def handle_message(message: dict) -> dict:
-    # TODO: Create a Spaces client once -- pass down to function
-
+def handle_message(s3client, message: dict) -> dict:
     # Identify the phone number to text back
     logger.debug(f"Handling message: {message}")
     phone = message.get("phone")
     # determine the MessageType to determine how to handle the message
-    message_type = determine_message_type(phone)
+    message_type = determine_message_type(s3client, phone)
     logger.debug(f"Message Type: {message_type}")
 
     if message_type == MessageType.FIRST:
         logger.info(f"This is our first message from: {phone}")
-        return handle_first_message(message)
+        return handle_first_message(s3client, message)
     elif message_type == MessageType.OPT_IN_MISSING:
         logger.info(f"Subsequent message from {phone} but no opt-in on record")
-        return handle_missing_opt_in(message)
+        return handle_missing_opt_in(s3client, message)
 
     text = message.get("text")
 
@@ -388,7 +362,7 @@ def handle_message(message: dict) -> dict:
     # TODO -- change this to the opt-out keywords defined in the Twilio Console
     if text.lower() == "reset":
         # delete the file for this phone number
-        return handle_reset(message)
+        return handle_reset(s3client, message)
 
     # create the outgoing message dictionary for send_message to use later
     outgoing_message = {"phone": phone, "text": None}
@@ -490,6 +464,9 @@ def main(event):
     optin_phone = event.get("phone")
     message = event.get("Body")
 
+    # Create a boto3 S3 client one time and pass down to all functions
+    s3client = create_spaces_client()
+
     # Error handling (need a phone, message can be empty -- not None)
     # TODO: use a best practice phone number regex here
     message = "" if message is None else message
@@ -507,9 +484,10 @@ def main(event):
 
     try:
         if optin_phone is not None:
-            reply_msg = optin(optin_phone)
+            reply_msg = optin(s3client, optin_phone)
+            # TODO: Check for a previous opt-in, simply send help keywords back
         else:
-            reply_msg = handle_message(incoming_message)
+            reply_msg = handle_message(s3client, incoming_message)
         send_message(reply_msg)
     except Exception as e:
         logger.error(f"Internal server error: {e.__str__()}")
@@ -519,18 +497,21 @@ def main(event):
 
 
 def simulate():
+    """Simulation function
+
+    Used for testing the functionality from the CLI, without hitting the Twilio API.
+    """
     parser = argparse.ArgumentParser(description="Execute a simulated call to the textED system")
     parser.add_argument("-w", "--webform", action="store_true")
     parser.add_argument("-m", "--message", nargs="?", default=None)
     parser.add_argument("-p", "--phone", nargs="?")
     args = parser.parse_args()
-    print(f"{args} HERE")
 
     if args.phone is None:
-        print("\n\nA 'phone' is required for command line execution...\n")
+        logger.error("A 'phone' is required for command line execution...")
         sys.exit(-1)
     elif args.webform and (args.message is not None):
-        print("\n\nYou cannot set a text message body for the webform opt-in execution...\n")
+        logger.error("You cannot set a text message body for the webform opt-in execution...")
         sys.exit(-2)
 
     # Proper CLI arguments, continue simulation
