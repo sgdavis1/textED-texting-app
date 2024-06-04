@@ -60,7 +60,7 @@
         "text": "Before we can get started, I need you to opt-in to our service. Please respond with 'START' if you’d like to continue"
     },
     "Greeting3": {
-        "text": "TextED by EDCI: You are now opted-in. To opt-out, text me STOP at any time."
+        "text": "Welcome to textED by EDCI: You are now opted-in. To opt-out, text me STOP at any time."
     },
     "Greeting4": {
         "text": "Thank you for reaching out! I can help you find resources for yourself, a loved one, or a patient. \n\nWhat can I help connect you with today?"
