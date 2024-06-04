@@ -300,20 +300,6 @@ def determine_message_type(phone: str) -> MessageType:
         return MessageType.LATER_REPLY
 
 
-def determine_is_first_message(phone: str) -> bool:
-    """Determine if this is the first message from this phone number
-    phone: the phone number to check
-
-    returns: True if this is the first message from this phone number
-    """
-    # check if the phone number is in the database
-    # remove the +1 from the phone number
-    # TODO: Handle international numbers properly (cannot assume +1 prefix)
-    phone = phone[1:]
-    filename = f"{phone}.txt"
-    return not does_file_exist(filename)
-
-
 def mark_number_as_sent(phone: str) -> bool:
     """Mark the phone number as having sent a message
     phone: the phone number to mark
@@ -363,6 +349,19 @@ def handle_reset(message: dict) -> dict:
     outgoing_message = {"phone": message.get("phone"), "text": "Reset successful"}
 
     return outgoing_message
+
+
+def optin(phone: str) -> dict:
+    """
+    Handle an automatic opt-in request from the website form
+    """
+    logger.debug(f"Creating opt-in for: {phone}, and sending back second greeting")
+    # Format the phone correctly (add +1 prefix and remove all dashes)
+    phone = "+1" + phone.replace("-","")
+    mark_number_as_sent(phone)
+    write_to_file(f"{phone}.txt", datetime.now().strftime(DATETIME_FORMAT))
+
+    return {"phone": phone, "text": get_responses()["Greeting3"]["text"]}
 
 
 def handle_message(message: dict) -> dict:
@@ -507,7 +506,10 @@ def main(event):
     incoming_message = {"phone": from_phone, "text": message}
 
     try:
-        reply_msg = handle_message(incoming_message)
+        if optin_phone is not None:
+            reply_msg = optin(optin_phone)
+        else:
+            reply_msg = handle_message(incoming_message)
         send_message(reply_msg)
     except Exception as e:
         logger.error(f"Internal server error: {e.__str__()}")
@@ -538,7 +540,7 @@ def simulate():
     msg = {}
     if args.webform:
         msg = {
-            "From": args.phone,
+            "phone": args.phone,
             "notsosecret": "texted-optin-webform"
         }
     else:
