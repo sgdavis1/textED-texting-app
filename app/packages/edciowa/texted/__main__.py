@@ -518,6 +518,11 @@ def simulate():
     """Simulation function
 
     Used for testing the functionality from the CLI, without hitting the Twilio API.
+    NOTE: The format of the 'phone' variable is dependent on the execution mode. When you
+          are executing as the webform, the phone is expected as 'XXX-XXX-XXXX' but when
+          you are sending a message, we expect the Twilio format of '+1XXXXXXXXXX' to match
+          what will happen in production. In the future we might want to make this consistent
+          across modes but would have to add Javacript to the opt-in form for support.
     """
     parser = argparse.ArgumentParser(description="Execute a simulated call to the textED system")
     parser.add_argument("-w", "--webform", action="store_true")
