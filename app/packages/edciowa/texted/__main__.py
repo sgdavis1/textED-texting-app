@@ -27,6 +27,8 @@ class MessageType(Enum):
     RECENT_REPLY = 2
     LATER_REPLY = 3
 
+# Opt-in Keywords
+OPT_IN_KEYWORDS = ['start', 'edci']
 
 # Match Threshold (to determine messages that cannot be handled)
 MATCH_MISSING_THRESHOLD = 60
@@ -187,6 +189,8 @@ def send_message(message: dict) -> None:
         logger.info(f"Message sent: {sid}")
 
         # If this was the opt-in send a second reply with more welcoming instructions
+        # TODO: Reorg to improve / make this testable from CLI execution
+        #       Possibly make "send_message" support multiple messages in an array
         if text == responses["Greeting3"]["text"]:
             message = responses["Greeting4"]["text"]
             tw_message = twilio_client.messages.create(
@@ -295,11 +299,15 @@ def mark_number_as_sent(s3client, phone: str) -> bool:
 def handle_first_message(s3client, message: dict) -> dict:
     # mark this phone number as having sent a message
     phone = message.get("phone")
+    text = message.get("text")
     mark_number_as_sent(s3client, phone)
 
-    # send the welcome message
-    # FIXME: What if they opted in on message 1?
-    first_message = get_responses()["Greeting1"]["text"]
+    # Check if they are opt-ing in
+    if text.lower() in OPT_IN_KEYWORDS:
+        first_message = get_responses()["Greeting3"]["text"]
+    else:
+        # Send the welcome message
+        first_message = get_responses()["Greeting1"]["text"]
 
     logger.debug(f"Sending message: {first_message}")
     outgoing_message = {"phone": phone, "text": first_message}
@@ -311,8 +319,7 @@ def handle_missing_opt_in(s3client, message: dict) -> dict:
     phone = message.get("phone")
     text = message.get("text")
     # Check if this is an opt-in
-    # FIXME: multiple opt-in keyword support
-    if text.lower() == "start":
+    if text.lower() in OPT_IN_KEYWORDS:
         write_to_file(s3client, f"{phone}.txt", datetime.now().strftime(DATETIME_FORMAT))
         return {"phone": phone, "text": get_responses()["Greeting3"]["text"]}
     else:
