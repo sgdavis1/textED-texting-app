@@ -304,6 +304,7 @@ def handle_first_message(s3client, message: dict) -> dict:
 
     # Check if they are opt-ing in
     if text.lower() in OPT_IN_KEYWORDS:
+        write_to_file(s3client, f"{phone}.txt", datetime.now().strftime(DATETIME_FORMAT))
         first_message = get_responses()["Greeting3"]["text"]
     else:
         # Send the welcome message
@@ -486,6 +487,7 @@ def main(event):
         logger.info(f"Received a website opt-in request from phone: {optin_phone}")
     elif from_phone is None:
         logger.warning(f"Cannot process incoming events without a 'From' phone: {from_phone}")
+        # TODO: Use Sentry here to report, but return a proper TwiML response to user
         return {"statusCode": 400, "body": "Cannot process incoming events without a 'From' phone"}
 
     logger.info(f"Received event. From: {from_phone}, Message: {message}")
