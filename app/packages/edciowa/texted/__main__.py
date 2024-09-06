@@ -117,7 +117,7 @@ def create_spaces_client():
 
 # --- File operations in Digital Ocean Spaces --- #
 
-def get_file_contents(s3client, filename):
+def get_file_contents(s3client, filename: str):
     """
     Get the contents of a file from our bucket. The presence of that file indicates that the
     phone number has been seen by this system. The contents of the file indicate the timestamp of
@@ -133,7 +133,7 @@ def get_file_contents(s3client, filename):
         query = s3client.get_object(Bucket=os.getenv("DO_BUCKET_NAME"), Key=filename)
         return query["Body"].read().decode("utf-8")
     except CredentialsError as ex:
-        logger.warning(f"Credentials problem with Digital Ocean Spaces: {ex}")
+        logger.error(f"Credentials problem with Digital Ocean Spaces: {ex}")
         raise
     except ClientError as ex:
         if ex.response['Error']['Code'] == 'NoSuchKey':
@@ -145,20 +145,21 @@ def get_file_contents(s3client, filename):
             raise
         return None
 
-
 def write_to_file(s3client, filename: str, content : str = ""):
     try:
         s3client.put_object(Bucket=os.getenv("DO_BUCKET_NAME"), Key=filename, Body=content)
         return True
     except:  # noqa
+        logger.error(f"Cannot write to Spaces (filename: {filename})")
         return False
 
 
-def delete_file(s3client, filename):
+def delete_file(s3client, filename: str):
     try:
         s3client.delete_object(Bucket=os.getenv("DO_BUCKET_NAME"), Key=filename)
         return True
     except:  # noqa
+        logger.error(f"Cannot delete file from Spaces (filename: {filename})")
         return False
 
 
