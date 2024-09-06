@@ -45,7 +45,7 @@
         "image_url":"https://edci-texts.nyc3.digitaloceanspaces.com/Weight%20Neutral.png"
     },
     "Treatment": {
-        "aliases": ["specialists, providers", "therapist", "find me a therapist", "find me a specialist" ],
+        "aliases": ["specialists", "providers", "dietitian", "nutritionists", "therapist", "find me a therapist", "find me a specialist" ],
         "text": "Here is some information that might be helpful based on your request.\n\nTreatment\n\nhttps://www.edciowa.com/provider-listings"
     },
     "Support Line": {
