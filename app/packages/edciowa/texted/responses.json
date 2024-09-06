@@ -26,7 +26,7 @@
         "image_url": "https://edci-texts.nyc3.digitaloceanspaces.com/Caregiver.png"
     },
     "Provider": {
-        "aliases": ["doctor","help my patient", "diagnoses", "diagnosis", "level of care", "care", "resources", "training"],
+        "aliases": ["doctor","help my patient", "diagnoses", "diagnosis", "level of care", "resources", "training"],
         "text": "Introduction for resources for providers.\n\nhttps://pdf.edciowa.com/Provider",
         "original_pdf": "https://www.edciowa.com/_files/ugd/93ebaa_e14006c08c2f4268be2bcdae23c13728.pdf",
         "image_url": "https://edci-texts.nyc3.digitaloceanspaces.com/Provider.png"
@@ -45,7 +45,7 @@
         "image_url":"https://edci-texts.nyc3.digitaloceanspaces.com/Weight%20Neutral.png"
     },
     "Treatment": {
-        "aliases": ["specialists, providers", "therapist", "find me a therapist", "find me a specialist" ],
+        "aliases": ["specialists", "providers", "dietitian", "nutritionists", "therapist", "find me a therapist", "find me a specialist" ],
         "text": "Here is some information that might be helpful based on your request.\n\nTreatment\n\nhttps://www.edciowa.com/provider-listings"
     },
     "Support Line": {

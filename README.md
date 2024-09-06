@@ -54,7 +54,8 @@ You will need to set up a Sentry project to collect logs: https://sentry.io/
 Inside the `/app/packages/edciowa/texted/` directory
 
 ```bash
-python __main__.py "Your message here"
+python __main__.py --phone=+15555555555 --message="Your message here"
+python __main__.py -p +15555555555 -m "Your message here"
 ```
 
 ## How to deploy
