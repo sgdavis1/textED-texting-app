@@ -1,12 +1,12 @@
 {
     "First steps": {
-        "aliases": ["start","begin","symptoms","support","how do I know","hello"],
+        "aliases": ["start","begin","symptoms","support","how do I know","hello", "arfid", "eating disorder", "myself"],
         "text":"First steps for what to do if you (or a loved one) think you have an eating disorder:\n\nhttps://pdf.edciowa.com/FirstSteps",
         "original_pdf":  "https://www.edciowa.com/_files/ugd/93ebaa_56f91966ee0444d580c99791f8f7c750.pdf",
         "image_url":"https://edci-texts.nyc3.digitaloceanspaces.com/First%20Steps.png"
     },
     "Recovery": {
-        "aliases": ["Help myself", "help me","help self","restriction", "binging", "purging", "recovery", "intuitive eating", "body image", "body neutrality"],
+        "aliases": ["Help myself", "help me","help self","restriction", "binging", "purging", "recovery", "intuitive eating", "body image", "body neutrality", "intuitive eating"],
         "ignore": ["How to help", "Help my loved one", "Help my child", "Help my friend", "Help my family member","Help my daughter","Help my son"],
         "text": "Helpful topics as you start recovery.\n\nhttps://pdf.edciowa.com/Recovery",
         "original_pdf": "https://www.edciowa.com/_files/ugd/93ebaa_9ce20ca5cf1b46ef94355eec1e6d10a3.pdf",
@@ -45,8 +45,12 @@
         "image_url":"https://edci-texts.nyc3.digitaloceanspaces.com/Weight%20Neutral.png"
     },
     "Treatment": {
-        "aliases": ["specialists", "providers", "dietitian", "nutritionists", "therapist", "find me a therapist", "find me a specialist" ],
-        "text": "Here is some information that might be helpful based on your request.\n\nTreatment\n\nhttps://www.edciowa.com/provider-listings"
+        "aliases": ["specialists", "providers", "dietitian", "nutritionists", "therapist", "find me a therapist", "find me a specialist", "iop", "telehealth" ],
+        "text": "Here is our list of specialized providers to contact. The providers listed on this page are Professional Members with EDCI and are providers which support the EDCI mission:\n\nhttps://www.edciowa.com/provider-listings"
+    },
+    "Thank You": {
+        "aliases": ["thanks", "thank you"],
+        "text": "You are welcome. I hope you have found the resources that are helpful for you.\nPlease consider signing up for the EDCI newsletter:\n\nhttps://www.edciowa.com/#newsletter"
     },
     "Support Line": {
         "aliases": ["crisis", "suicide", "kill", "death", "emergency", "cutting", "overwhelmed", "cut", "dying", "911", "harm to self", "unsafe", "scared", "afraid"],
